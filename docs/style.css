@@ -1,0 +1,337 @@
+/* Cadence landing page.
+   Only the hardware is black: bezel, notch, island. Red only means "live". */
+
+:root {
+  --bg: #ecedef;            /* studio backdrop */
+  --ink: #26282c;           /* graphite, so black stays special */
+  --muted: #64676e;
+  --line: #d3d5d9;
+  --soft: #e1e3e6;
+  --hw: #000;               /* hardware */
+  --paper: #f2f2ee;         /* text on the island */
+  --tally: #ff4136;         /* on air */
+  --marker: #ffc94a;
+  --alu: linear-gradient(#d9dbde, #b9bcc1);
+  --wall: linear-gradient(170deg, #d8dde6 0%, #aeb7c6 55%, #8f99ab 100%);
+  --menubar: rgba(255, 255, 255, 0.55);
+  --menubar-ink: #1d1e21;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --serif: "Newsreader", "New York", Georgia, serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --spring: linear(0, 0.03, 0.109, 0.217, 0.341, 0.469, 0.593, 0.706, 0.806, 0.889, 0.956, 1.007, 1.044, 1.068, 1.082, 1.087, 1.086, 1.08, 1.071, 1.06, 1.049, 1.038, 1.028, 1.019, 1.011, 1.005, 1, 0.997, 0.995, 0.993, 0.992, 0.992, 0.993, 0.994, 0.995, 0.995, 0.996, 0.997, 0.998, 0.999, 0.999, 1);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1c1f; --ink: #e8e8e5; --muted: #a0a2a8; --line: #34363b; --soft: #26282c;
+    --alu: linear-gradient(#3a3c40, #232427);
+    --wall: linear-gradient(170deg, #3a4150 0%, #252a35 60%, #191c23 100%);
+    --menubar: rgba(30, 32, 36, 0.6); --menubar-ink: #eceae6;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1c1f; --ink: #e8e8e5; --muted: #a0a2a8; --line: #34363b; --soft: #26282c;
+  --alu: linear-gradient(#3a3c40, #232427);
+  --wall: linear-gradient(170deg, #3a4150 0%, #252a35 60%, #191c23 100%);
+  --menubar: rgba(30, 32, 36, 0.6); --menubar-ink: #eceae6;
+  color-scheme: dark;
+}
+/* The easter egg: the whole page goes on air. */
+:root[data-red] {
+  --bg: #ff4136; --ink: #fff; --muted: rgba(255, 255, 255, 0.82); --line: rgba(255, 255, 255, 0.4); --soft: rgba(255, 255, 255, 0.14);
+  --wall: linear-gradient(170deg, #ff8a7f 0%, #ff4f43 60%, #d92a20 100%);
+  --menubar: rgba(255, 255, 255, 0.35); --menubar-ink: #2a0503;
+  --marker: #fff;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.55 var(--sans);
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--tally); outline-offset: 3px; border-radius: 6px; }
+:root[data-red] :focus-visible { outline-color: #fff; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+/* ---------- Nav ---------- */
+.nav {
+  position: fixed; inset: 0 0 auto; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px; padding: 0 24px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px);
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600; font-size: 17px; }
+.brand img { border-radius: 7px; }
+.nav-tools { display: flex; align-items: center; gap: 14px; }
+.langs { display: flex; gap: 2px; }
+.langs button { border: 0; background: none; padding: 6px 8px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.langs button[aria-pressed="true"] { color: var(--ink); background: var(--soft); }
+.icon-btn { border: 0; background: none; padding: 7px; border-radius: 8px; display: grid; place-items: center; }
+.icon-btn svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.icon-btn .moon { display: none; fill: currentColor; stroke: none; }
+:root[data-dark] .icon-btn .sun { display: none; }
+:root[data-dark] .icon-btn .moon { display: block; }
+.gh { font-size: 14px; font-weight: 600; text-decoration: none; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; }
+
+/* ---------- Stage: one MacBook, hero close-up to full laptop ---------- */
+.stage { position: relative; height: 260vh; }
+.sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+
+.laptop {
+  position: absolute; left: 50%; top: 0;
+  width: 1760px; margin-left: -880px;
+  transform-origin: 50% 0;
+  will-change: transform;
+}
+.lid {
+  width: 1540px; margin: 0 auto;
+  padding: 14px 14px 22px;
+  background: var(--hw);
+  border-radius: 30px 30px 6px 6px;
+  box-shadow: 0 0 0 2px #2b2c2f inset, 0 30px 80px rgba(0, 0, 0, 0.18);
+}
+.screen {
+  position: relative; width: 1512px; height: 982px;
+  border-radius: 12px 12px 2px 2px; overflow: hidden;
+  background: #000;
+}
+.deck {
+  position: relative; height: 30px;
+  background: var(--alu);
+  border-radius: 2px 2px 26px 26px / 2px 2px 16px 16px;
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.16);
+}
+.thumb { position: absolute; left: 50%; top: 0; width: 240px; height: 12px; margin-left: -120px; border-radius: 0 0 12px 12px; background: rgba(0, 0, 0, 0.14); }
+
+.layer { position: absolute; inset: 0; }
+.wallpaper { position: absolute; inset: 0; background: var(--wall); transition: background 0.35s ease; }
+.menubar {
+  position: absolute; inset: 0 0 auto; height: 32px; padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--menubar); color: var(--menubar-ink);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  font-size: 13px;
+}
+.mb-left, .mb-right { display: flex; align-items: center; gap: 20px; }
+.mb-left b { font-weight: 700; }
+.mb-glyph { fill: currentColor; }
+
+/* The island: starts as the hardware notch, springs open like the app. */
+.island {
+  position: absolute; left: 50%; top: 0; z-index: 2;
+  width: 185px; height: 32px;
+  transform: translateX(-50%);
+  background: var(--hw);
+  border-radius: 0 0 10px 10px;
+  transition: width 0.9s var(--spring), height 0.9s var(--spring), border-radius 0.5s ease;
+}
+.island::before, .island::after { /* concave flares into the menu bar */
+  content: ""; position: absolute; top: 0; width: 8px; height: 8px;
+}
+.island::before { left: -8px; background: radial-gradient(circle at 0 100%, transparent 7.5px, var(--hw) 8px); }
+.island::after { right: -8px; background: radial-gradient(circle at 100% 100%, transparent 7.5px, var(--hw) 8px); }
+.island.open { width: 460px; height: 136px; border-radius: 0 0 22px 22px; }
+
+.camera {
+  position: absolute; left: 50%; top: 11px; width: 10px; height: 10px; margin-left: -5px;
+  padding: 0; border: 0; border-radius: 50%;
+  background: var(--tally);
+  box-shadow: 0 0 0 3px rgba(255, 65, 54, 0.18);
+}
+.camera:hover { box-shadow: 0 0 0 5px rgba(255, 65, 54, 0.3); }
+:root[data-red] .camera { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5); }
+
+.island-text {
+  position: absolute; left: 0; right: 0; top: 34px; bottom: 6px; overflow: hidden;
+  opacity: 0; transition: opacity 0.3s ease 0.15s;
+  -webkit-mask-image: linear-gradient(#000 45%, transparent 100%);
+  mask-image: linear-gradient(#000 45%, transparent 100%);
+}
+.island.open .island-text { opacity: 1; }
+.lines {
+  padding: 4px 22px 60px;
+  color: var(--paper); text-align: center;
+  font: 600 20px/1.32 var(--display);
+  transition: transform 0.2s ease-out;
+}
+.lines .w { border-radius: 4px; transition: color 0.2s ease, background-color 0.2s ease; }
+.lines .read { color: rgba(242, 242, 238, 0.38); }
+.lines .now { background: rgba(255, 255, 255, 0.2); }
+
+.count, .onair {
+  position: absolute; left: 0; right: 0; top: 34px; bottom: 0;
+  display: grid; place-items: center;
+  color: var(--paper); font: 700 44px/1 var(--display);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+}
+.onair { font-size: 26px; letter-spacing: -0.01em; }
+.onair::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 10px; border-radius: 50%; background: var(--tally); vertical-align: middle; }
+.island.counting .count, .island.on-air .onair { opacity: 1; }
+.island.counting .island-text, .island.on-air .island-text { opacity: 0.12; }
+
+/* Controls on the desktop, under the island */
+.controls { position: absolute; left: 50%; top: 190px; transform: translateX(-50%); display: grid; justify-items: center; gap: 12px; width: 560px; }
+.transport {
+  display: flex; align-items: center; gap: 14px;
+  height: 58px; padding: 0 18px;
+  background: var(--hw); color: #fff; border-radius: 24px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+}
+.transport button { border: 0; background: none; color: #fff; display: inline-flex; align-items: center; gap: 8px; padding: 6px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+.transport svg { fill: currentColor; }
+.t-play { width: 40px; height: 40px; justify-content: center; border-radius: 50% !important; background: var(--paper) !important; color: #000 !important; }
+.t-play .i-pause, .playing .t-play .i-play { display: none; }
+.playing .t-play .i-pause { display: block; }
+.t-mic[aria-pressed="true"] { color: var(--tally); }
+.t-mic[aria-pressed="true"] span { color: #fff; }
+.t-sep { width: 1px; height: 24px; background: rgba(255, 255, 255, 0.18); }
+.status {
+  margin: 0; min-height: 22px; padding: 2px 12px; border-radius: 999px;
+  font-size: 14px; color: #fff; background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.status:empty { visibility: hidden; }
+.editor[hidden] { display: none; }
+/* While editing the demo text, the hero copy steps aside so the editor is usable. */
+.editing .hero-copy { opacity: 0 !important; visibility: hidden !important; }
+.editing .hero-fade { opacity: 0 !important; }
+.static.editing .hero-copy { visibility: visible !important; opacity: 1 !important; }
+.editor { width: 100%; display: grid; gap: 8px; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, 0.86); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2); }
+.editor textarea { width: 100%; resize: vertical; border: 1px solid #c9ccd1; border-radius: 10px; padding: 10px 12px; font: 16px/1.4 var(--sans); color: #1d1e21; background: #fff; }
+.editor-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.editor-actions button { border-radius: 999px; padding: 7px 14px; font-size: 14px; font-weight: 600; }
+.ghost { border: 1px solid #c9ccd1; background: transparent; color: #1d1e21 !important; }
+.solid { border: 0; background: #000; color: #fff !important; }
+
+/* Video on the laptop's screen */
+.video-layer { opacity: 0; pointer-events: none; background: #000; }
+.video-layer video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.play-guide {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: inline-flex; align-items: center; gap: 14px;
+  padding: 22px 34px 22px 28px; border: 0; border-radius: 999px;
+  background: rgba(242, 242, 238, 0.94); color: #000;
+  font: 600 48px/1 var(--display);
+  padding: 30px 52px 30px 40px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+.play-guide svg { fill: currentColor; width: 52px; height: 52px; }
+.video-layer.started .play-guide { display: none; }
+
+/* Hero copy sits over a fade that crops the close-up */
+.hero-fade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to bottom, transparent 46%, var(--bg) 66%); }
+.hero-copy {
+  position: absolute; left: 0; right: 0; bottom: 5vh;
+  max-width: 760px; margin: 0 auto; padding: 0 16px; text-align: center;
+}
+h1 {
+  margin: 0 0 14px;
+  font: 700 clamp(36px, 5.4vw, 68px)/1.04 var(--display);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.sub { margin: 0 auto 26px; max-width: 34em; font-size: clamp(17px, 1.6vw, 20px); color: var(--muted); text-wrap: pretty; }
+.install {
+  display: inline-flex; align-items: center; gap: 10px; max-width: 100%;
+  padding: 8px 8px 8px 18px; border-radius: 16px;
+  background: var(--hw); color: var(--paper);
+}
+.install code { font: 15px/1.4 var(--mono); white-space: nowrap; overflow-x: auto; }
+.install button { border: 0; border-radius: 10px; padding: 9px 16px; background: var(--paper); color: #000; font-size: 14px; font-weight: 600; flex: none; }
+.alt { margin: 16px 0 6px; font-size: 15px; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; }
+.alt a { color: var(--ink); font-weight: 600; }
+.note { margin: 0 auto; max-width: 40em; font-size: 13px; color: var(--muted); }
+
+.video-caption { position: absolute; left: 0; right: 0; bottom: 4vh; text-align: center; opacity: 0; pointer-events: none; }
+.video-caption h2 { margin: 0; font: 600 22px/1.2 var(--display); letter-spacing: -0.01em; }
+.video-caption p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.video-caption p:empty { display: none; }
+
+/* ---------- Content sections ---------- */
+.block { max-width: 760px; margin: 0 auto; padding: 96px 16px 0; }
+.block h2 { margin: 0 0 22px; font: 700 clamp(28px, 3.4vw, 40px)/1.1 var(--display); letter-spacing: -0.025em; }
+.block p { margin: 0 0 16px; text-wrap: pretty; }
+
+/* "What it does" is set like a Cadence script, markup marks and all. */
+.script {
+  font: 400 22px/1.62 var(--serif);
+  padding: 34px 40px; border-radius: 18px;
+  background: color-mix(in srgb, var(--bg) 55%, #fff);
+  border: 1px solid var(--line);
+}
+:root[data-dark] .script { background: #222326; }
+:root[data-red] .script { background: rgba(255, 255, 255, 0.12); }
+.script p { margin: 0 0 18px; }
+.script p:last-child { margin: 0; }
+.script strong { font-weight: 600; }
+.script .mk { color: var(--muted); opacity: 0.55; font-weight: 400; }
+.script mark { background: color-mix(in srgb, var(--marker) 45%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.script .cue { color: var(--tally); }
+:root[data-red] .script .cue { color: #fff; text-decoration: underline; }
+
+.steps { list-style: none; counter-reset: step; margin: 0 0 24px; padding: 0; display: grid; gap: 22px; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; }
+.steps li::before {
+  content: counter(step); grid-row: span 2;
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--hw); color: var(--paper); font: 700 15px/1 var(--display);
+}
+.steps h3 { margin: 4px 0 4px; font: 600 19px/1.3 var(--display); }
+.steps p { margin: 0; color: var(--muted); }
+.aside { color: var(--muted); font-size: 15px; }
+
+.privacy p { font-size: 20px; line-height: 1.55; }
+
+.faq details { border-top: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary { list-style: none; cursor: pointer; padding: 18px 36px 18px 0; position: relative; font-weight: 600; font-size: 18px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: 4px; top: 14px; font-size: 24px; font-weight: 400; color: var(--muted); transition: transform 0.2s ease; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { margin: 0 0 20px; color: var(--muted); }
+
+.links { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 10px; }
+.links a { display: inline-block; padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 15px; }
+.links a:hover { border-color: var(--ink); }
+.version { color: var(--muted); font-size: 14px; }
+.support { margin-top: 32px; }
+
+.foot { max-width: 760px; margin: 120px auto 0; padding: 28px 16px 48px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 14px; }
+.foot p { margin: 0; }
+
+.mobile-video { display: none; }
+
+/* ---------- Small screens and reduced motion: no scroll choreography ---------- */
+.static .stage { height: auto; }
+.static .sticky { position: relative; height: auto; overflow: hidden; padding-bottom: 8px; }
+.static .hero-copy { position: relative; bottom: auto; }
+.static .hero-fade { display: none; }
+.static .video-caption, .static .video-layer { display: none; }
+.static .mobile-video { display: block; max-width: 760px; margin: 0 auto; padding: 80px 16px 0; text-align: center; }
+.mobile-video h2 { margin: 0 0 18px; font: 700 28px/1.1 var(--display); letter-spacing: -0.02em; }
+.mobile-video p { color: var(--muted); font-size: 14px; }
+.mini-mac { position: relative; padding: 10px 10px 14px; border-radius: 18px 18px 6px 6px; background: var(--hw); }
+.mini-mac::before { content: ""; position: absolute; left: 50%; top: 10px; width: 16%; height: 4.2%; transform: translateX(-50%); background: var(--hw); border-radius: 0 0 6px 6px; z-index: 1; }
+.mini-mac video { width: 100%; display: block; border-radius: 8px 8px 2px 2px; }
+
+@media (max-width: 640px) {
+  .nav { padding: 0 16px; }
+  .gh { display: none; }
+  .script { padding: 24px 20px; font-size: 20px; }
+  .install code { font-size: 13px; }
+  .foot { flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}

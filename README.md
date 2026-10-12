@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://nicholastn1.github.io/cadence/">▶ Watch the one-minute guide (with narration)</a>
+  <a href="https://nicholastn1.github.io/cadence/">Website, live demo and the one-minute guide</a>
 </p>
 
 ---

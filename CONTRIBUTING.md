@@ -24,6 +24,7 @@ The app is a handful of Swift files in `Sources/`, compiled with `swiftc` by `bu
 | `Listener.swift` | Microphone and on-device speech recognition |
 | `Matching.swift` | Pure voice-matching functions, covered by `--selftest` |
 | `Markup.swift` | `**stress**`, `==highlight==`, `[notes]`: rendering for the notch and styling in the editor |
+| `Updates.swift` | Update checks against GitHub Releases, Homebrew updates, and the What's New window |
 | `Views.swift` | SwiftUI: the window, editor, playback bar, settings, and menu commands |
 
 The notch panel is hidden from screenshots on purpose. To capture it for a PR, launch with `CADENCE_CAPTURABLE=1 ./Cadence.app/Contents/MacOS/Cadence`.
@@ -35,7 +36,7 @@ The notch panel is hidden from screenshots on purpose. To capture it for a PR, l
 - `./build.sh` succeeds.
 - `./Cadence.app/Contents/MacOS/Cadence --selftest` passes. If you touch the voice matching, add a case there.
 - You tried it on a Mac with a notch. Say in the PR which model, because notch sizes differ.
-- Add a line to `CHANGELOG.md` under an `Unreleased` heading.
+- Add a line to `CHANGELOG.md` under an `Unreleased` heading. Each version's section becomes its GitHub release notes and shows up in the app's What's New window.
 
 ## Releasing (maintainers)
 

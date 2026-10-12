@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var m: Prompter
+    @ObservedObject var u = updater
+    @Environment(\.openWindow) var openWindow
 
     var body: some View {
         NavigationSplitView {
@@ -17,6 +19,25 @@ struct ContentView: View {
                 }
             }
             .onDeleteCommand { if let id = m.selectedID { m.delete(id) } }
+            .safeAreaInset(edge: .bottom) {
+                if let r = u.available {
+                    Button { openWindow(id: "whats-new") } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "arrow.down.circle.fill").font(.title3).foregroundStyle(Color.accentColor)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Update available").font(.callout.weight(.semibold))
+                                Text("Cadence \(r.version): see what's new").font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(10)
+                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(.background.opacity(0.6)))
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(10)
+                }
+            }
             .navigationSplitViewColumnWidth(min: 190, ideal: 230)
             .toolbar {
                 Button { m.newScript() } label: { Label("New Script", systemImage: "square.and.pencil") }
@@ -44,6 +65,7 @@ struct ContentView: View {
                 }
             }
         }
+        .onAppear { if updater.justUpdated() { openWindow(id: "whats-new") } }
         .alert("Voice mode stopped", isPresented: Binding(get: { m.voiceError != nil }, set: { if !$0 { m.voiceError = nil } })) {
             Button("OK") {}
         } message: {
@@ -256,8 +278,16 @@ struct SettingsView: View {
 
 struct PrompterCommands: Commands {
     @ObservedObject var m: Prompter
+    @Environment(\.openWindow) var openWindow
 
     var body: some Commands {
+        CommandGroup(after: .appInfo) {
+            Button("Check for Updates…") {
+                openWindow(id: "whats-new")
+                Task { await updater.check(manual: true) }
+            }
+            Button("What's New") { openWindow(id: "whats-new") }
+        }
         CommandGroup(replacing: .newItem) {
             Button("New Script") { m.newScript() }.keyboardShortcut("n")
         }

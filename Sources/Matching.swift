@@ -99,5 +99,7 @@ func runSelfTest() {
     let cue = "Say hi [smile] now" as NSString
     let c = tokenize(cue as String, skipping: [cue.range(of: "[smile]")]).map(\.word)
     precondition(c == ["say", "hi", "now"])                                    // cues are never matched
+    precondition(isNewer("0.10.0", than: "0.9.2") && isNewer("1.0", than: "0.9.9") && !isNewer("0.2.0", than: "0.2.0"))
+    precondition(isNewer("0.2.0", than: "0.0.0-dev") && !isNewer("0.1.9", than: "0.2"))
     print("selftest ok")
 }

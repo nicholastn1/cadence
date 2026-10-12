@@ -30,6 +30,7 @@ Cadence puts your script just under the camera, so on a call or a recording you 
 - **Formatting for reading aloud.** Stress words with `**bold**`, highlight with `==amber==`, and leave yourself `[notes]` that show in red and are never read.
 - **Countdown and mirror mode.** A 3-2-1 before scrolling starts, and mirrored text for teleprompter glass.
 - **In the menu bar.** Play, switch scripts, or turn on your voice without opening the window. You can hide the icon.
+- **Tells you about updates.** A daily check, release notes inside the app, and one-click updates for Homebrew installs.
 - **Adjustable.** Panel width, visible lines, text size, speed, and which display to use.
 - **Works with more than English.** Voice mode detects the script's language, so a Portuguese script works on a Mac set to English.
 
@@ -52,6 +53,16 @@ xattr -dr com.apple.quarantine /Applications/Cadence.app
 ```
 
 Homebrew does this step for you.
+
+### Updating
+
+Cadence checks for new versions once a day and tells you in the sidebar and the menu bar. Open **Cadence > Check for Updates…** to check now. If you installed with Homebrew, **Update and Relaunch** does the rest. You can also run:
+
+```sh
+brew upgrade --cask cadence
+```
+
+**Cadence > What's New** shows the release notes for every version.
 
 ### Build from source
 

@@ -16,6 +16,10 @@ struct CadenceApp: App {
         .defaultSize(width: 960, height: 620)
         .commands { PrompterCommands(m: model) }
 
+        Window("What's New in Cadence", id: "whats-new") { WhatsNewView(u: updater) }
+            .defaultSize(width: 560, height: 600)
+            .windowResizability(.contentMinSize)
+
         // Only write real changes: AppKit echoes the value back, and every write re-renders the app body.
         MenuBarExtra(isInserted: Binding(get: { m.settings.showInMenuBar },
                                          set: { if $0 != m.settings.showInMenuBar { m.settings.showInMenuBar = $0 } })) {
@@ -31,7 +35,10 @@ struct CadenceApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var quitting = false
 
-    func applicationDidFinishLaunching(_ n: Notification) { notch.start() }
+    func applicationDidFinishLaunching(_ n: Notification) {
+        notch.start()
+        updater.startChecking()
+    }
 
     // With the menu bar icon showing, quitting from the Dock or with Command-Q only hides
     // the window and Dock icon. Quit in the menu bar menu really quits.
@@ -61,9 +68,20 @@ let menuBarIcon: NSImage = {
 
 struct MenuBarMenu: View {
     @ObservedObject var m: Prompter
+    @ObservedObject var u = updater
     @Environment(\.openWindow) var openWindow
 
+    func show(_ id: String) {
+        NSApp.setActivationPolicy(.regular)
+        openWindow(id: id)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     var body: some View {
+        if let r = u.available {
+            Button("Update to Cadence \(r.version)…") { show("whats-new") }
+            Divider()
+        }
         Button(m.isRunning && !m.voice ? "Pause" : "Play") { m.togglePlay() }.disabled(m.voice)
         Toggle("Follow My Voice", isOn: $m.voice)
         Button("Back to Top") { m.restart() }
@@ -73,11 +91,8 @@ struct MenuBarMenu: View {
         }
         Toggle("Show on Notch", isOn: $m.settings.showOnNotch)
         Divider()
-        Button("Open Cadence") {
-            NSApp.setActivationPolicy(.regular)
-            openWindow(id: "main")
-            NSApp.activate(ignoringOtherApps: true)
-        }
+        Button("Open Cadence") { show("main") }
+        Button("Check for Updates…") { show("whats-new"); Task { await u.check(manual: true) } }
         SettingsLink { Text("Settings…") }
         Button("Hide Menu Bar Icon") { m.settings.showInMenuBar = false }
         Divider()

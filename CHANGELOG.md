@@ -2,6 +2,13 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.3.0] - 2026-10-12
+
+- Check for updates: Cadence looks for new versions once a day, and you can check from the Cadence menu or the menu bar.
+- When an update is out, you'll see a notice in the sidebar and the menu bar. Homebrew installs update and relaunch in one click.
+- What's New: release notes for every version, inside the app. It opens once after each update.
+- Release notes on GitHub now match this changelog.
+
 ## [0.2.0] - 2026-10-12
 
 - New window design: a script library in the sidebar, a serif editor, and a playback bar shaped like the notch island. Hovering a control shows what it does.

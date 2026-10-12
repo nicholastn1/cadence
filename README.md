@@ -23,10 +23,14 @@ Cadence puts your script just under the camera, so on a call or a recording you 
 
 ## Features
 
-- **Lives in the notch.** The panel springs out of the hardware notch and tucks back in, shaped like the notch itself.
-- **Follows your voice.** Speech recognition runs on your Mac. Cadence finds where you are in the script and scrolls to keep that line under the camera. If you pause, it waits; if you go back, it follows.
+- **Lives in the notch.** The panel springs out of the hardware notch and tucks back in, shaped like the notch itself. With **Open on hover**, it stays hidden until you point at it or start reading.
+- **Follows your voice.** Speech recognition runs on your Mac. Cadence finds where you are in the script and keeps that line under the camera. It handles numbers ("42" or "forty-two"), words you add or skip, and small mishearings. If you pause, it waits; if you go back, it follows.
 - **Hidden from screen sharing.** People on Zoom, Meet, or Teams don't see it, and it doesn't show up in screenshots.
-- **Simple controls.** Paste a script, set speed and text size, then play or pause. Click the panel to pause, or scroll on it to move by hand.
+- **A script library.** Keep as many scripts as you like. Everything saves as you type.
+- **Formatting for reading aloud.** Stress words with `**bold**`, highlight with `==amber==`, and leave yourself `[notes]` that show in red and are never read.
+- **Countdown and mirror mode.** A 3-2-1 before scrolling starts, and mirrored text for teleprompter glass.
+- **In the menu bar.** Play, switch scripts, or turn on your voice without opening the window. You can hide the icon.
+- **Adjustable.** Panel width, visible lines, text size, speed, and which display to use.
 - **Works with more than English.** Voice mode detects the script's language, so a Portuguese script works on a Mac set to English.
 
 ## Install
@@ -62,11 +66,21 @@ You need macOS 14 or later and the Command Line Tools. Xcode isn't needed.
 
 | Action | How |
 |---|---|
-| Play / pause | ⌘↩ in the window, or click the notch panel |
-| Restart from the top | ⌘R |
-| Follow my voice | Turn on **🎙 Follow my voice** |
-| Scroll by hand | Use the trackpad over the notch panel |
-| Hide the panel | Turn off **Open on notch** |
+| Play or pause | ⌘↩, the play button, or click the notch panel |
+| Back to the top | ⌘R |
+| Follow my voice | ⌘L, or the microphone button |
+| Faster or slower | ⌘] and ⌘[, or the speed slider |
+| Scroll by hand | Trackpad over the notch panel |
+| New script | ⌘N |
+| Stress, highlight, note | ⌘B, ⇧⌘H, ⌘K (or the toolbar) |
+| Settings | ⌘, |
+
+Formatting in a script:
+
+```text
+We grew **42 percent** this year. [pause]
+==Thank the team== before the numbers. [smile]
+```
 
 The first time you use voice mode, macOS asks for Microphone and Speech Recognition access.
 
@@ -81,17 +95,16 @@ Speech recognition runs on your Mac whenever macOS supports it for the script's 
 
 ## Roadmap
 
-Things planned, roughly in order. Want one sooner? Open an issue or upvote one.
+Cadence is a work in progress. Next up, roughly in order. Want one sooner? Open an issue or upvote one.
 
-- [ ] Global hotkeys, so you can pause and restart while another app has focus
-- [ ] Open on hover and close when idle
 - [ ] Signed and notarized builds
-- [ ] Settings for panel width, height, and position
-- [ ] Fuzzier voice matching for numbers, ad-libs, and skipped lines
-- [ ] A countdown before starting, and a mirrored mode for teleprompter glass
-- [ ] A library of saved scripts
-- [ ] Rich text: bold, colors, and cue marks
-- [ ] Support for external displays without a notch
+- [ ] Highlight the exact word you're on, not just the line
+- [ ] Import scripts from `.txt`, `.md`, and `.docx` files
+- [ ] Pace stats after a take: words per minute and where you slowed down
+- [ ] Use your iPhone as a remote
+- [ ] Portuguese and Spanish interface
+
+Done recently: notch hover, script library, formatting, countdown, mirror mode, fuzzy voice matching, settings, menu bar, external displays.
 
 ## Contributing
 

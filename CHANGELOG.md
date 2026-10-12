@@ -2,6 +2,19 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.2.0] - 2026-10-12
+
+- New window design: a script library in the sidebar, a serif editor, and a playback bar shaped like the notch island. Hovering a control shows what it does.
+- Formatting: `**stress**`, `==highlight==`, and `[notes]` that show in red and are never read aloud.
+- Voice mode understands numbers, ignores ad-libs, tolerates skipped words, and explains what to do if access is denied.
+- Open on hover: the panel stays in the notch until you point at it or start reading.
+- 3-2-1 countdown before playback, mirror mode for teleprompter glass.
+- Settings window: display, panel width, visible lines, text size, countdown, mirror, hover, menu bar.
+- Menu bar icon with quick controls. You can hide it.
+- Works on external displays without a notch.
+- New app icon.
+- The line you're reading stays sharp while the lines below fade.
+
 ## [0.1.0] - 2026-10-12
 
 First public release.

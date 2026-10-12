@@ -14,16 +14,21 @@ cd cadence
 
 ## How the code is laid out
 
-On purpose, the whole app is a single file, `main.swift`, built with `swiftc`. Its sections, top to bottom:
+The app is a handful of Swift files in `Sources/`, compiled with `swiftc` by `build.sh`. There's no Xcode project and no package manager.
 
-1. **Voice matching**: `tokenize` and `locate`. These are pure functions, covered by `--selftest`.
-2. **Prompter panel**: the borderless window over the notch, its notch-shaped mask, and the spring animation.
-3. **Shared state**: `Prompter`, an `ObservableObject` saved to `UserDefaults`.
-4. **Listener**: microphone input and on-device speech recognition.
-5. **Control window**: a SwiftUI view inside an AppKit window.
-6. **Ticker**: a display link that scrolls the text every frame.
+| File | What's in it |
+|---|---|
+| `CadenceApp.swift` | App entry, the menu bar menu, and quit behavior |
+| `Model.swift` | `Prompter`: scripts, settings, and playback state, saved to `UserDefaults` |
+| `Notch.swift` | The panel over the notch: geometry, the spring animation, hover, countdown, scrolling |
+| `Listener.swift` | Microphone and on-device speech recognition |
+| `Matching.swift` | Pure voice-matching functions, covered by `--selftest` |
+| `Markup.swift` | `**stress**`, `==highlight==`, `[notes]`: rendering for the notch and styling in the editor |
+| `Views.swift` | SwiftUI: the window, editor, playback bar, settings, and menu commands |
 
-If a change makes the file hard to follow, splitting it into several files and a Swift package is fine. Do that in its own PR.
+The notch panel is hidden from screenshots on purpose. To capture it for a PR, launch with `CADENCE_CAPTURABLE=1 ./Cadence.app/Contents/MacOS/Cadence`.
+
+`@State` and `@Observable` are macros that plain `swiftc` can't load, so keep view state in an `ObservableObject`.
 
 ## Before opening a PR
 

@@ -32,7 +32,8 @@ Cadence puts your script just under the camera, so on a call or a recording you 
 - **In the menu bar.** Play, switch scripts, or turn on your voice without opening the window. You can hide the icon.
 - **Tells you about updates.** A daily check, release notes inside the app, and one-click updates for Homebrew installs.
 - **Adjustable.** Panel width, visible lines, text size, speed, and which display to use.
-- **Works with more than English.** Voice mode detects the script's language, so a Portuguese script works on a Mac set to English.
+- **Holds still when you go off script.** Answer a question or chat for a moment and Cadence waits; it picks up again when you're back on the script.
+- **Works in 34 languages.** Voice mode detects each script's language, or you can pick one. A Portuguese script works on a Mac set to English.
 
 ## Install
 
@@ -95,6 +96,18 @@ We grew **42 percent** this year. [pause]
 
 The first time you use voice mode, macOS asks for Microphone and Speech Recognition access.
 
+## How voice mode works
+
+Cadence doesn't listen for *when* you speak, only for *what* you say. Apple's speech recognizer turns your voice into words several times a second. Cadence takes your last few words and looks for them in the script near the line you're on. It moves the panel only when they line up:
+
+- One word is enough for the next couple of words, but only if it's a real word. "The" or "and" alone can't move it.
+- Moving further takes two or three words in a row, so a phrase that repeats later in the script doesn't make it jump.
+- After about six words that don't match, Cadence assumes you're talking to someone and holds still until three words in a row match again.
+
+Numbers match either way ("42" or "forty-two"), accents are ignored, and words you add or skip are tolerated.
+
+**Languages.** Voice mode works in the 34 languages macOS speech recognition supports. The globe button in the toolbar picks the language per script, and Automatic is the default. Languages marked *online* send audio to Apple. To use one offline, add it in **System Settings > Keyboard > Dictation**. In languages Apple doesn't support, steady scrolling still works.
+
 ## Requirements
 
 - An Apple Silicon Mac with macOS 14 (Sonoma) or later.
@@ -102,7 +115,7 @@ The first time you use voice mode, macOS asks for Microphone and Speech Recognit
 
 ## Privacy
 
-Speech recognition runs on your Mac whenever macOS supports it for the script's language. Cadence has no servers, accounts, or analytics. Your script is stored only in the app's preferences on your Mac.
+Speech recognition runs on your Mac whenever macOS supports it for the script's language; otherwise Apple's servers handle it, and the app tells you when that's the case. Cadence has no servers, accounts, or analytics. Your script is stored only in the app's preferences on your Mac.
 
 ## Roadmap
 
@@ -119,7 +132,7 @@ Done recently: notch hover, script library, formatting, countdown, mirror mode, 
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). The whole app is one Swift file, so it's easy to find your way around.
+See [CONTRIBUTING.md](CONTRIBUTING.md). The app is a handful of small Swift files with no Xcode project, so it's easy to find your way around.
 
 ## License
 

@@ -2,6 +2,13 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.4.0] - 2026-10-12
+
+- Voice mode holds still when you go off script, like when you answer someone, and picks up when you're back. The playback bar says "Off script. Waiting for you."
+- A single common word ("the", "and", "de") can no longer nudge the script forward.
+- Pick the voice language for each script from the globe button in the toolbar. Automatic detection is still the default.
+- Languages that need internet are marked "online", in the language menu and while listening.
+
 ## [0.3.1] - 2026-10-12
 
 - Fixed: Quit in the menu bar left Cadence running in the background.

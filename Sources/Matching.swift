@@ -59,9 +59,14 @@ func alignScore(_ tail: [String], _ words: [String], endingAt i: Int) -> Int {
     return score
 }
 
+/// A word that can move the script on its own: not a short function word like "the", "and", "de".
+/// Non-Latin words carry more meaning per letter, so they need fewer.
+func isSubstantial(_ w: String) -> Bool { w.count >= (w.unicodeScalars.allSatisfy(\.isASCII) ? 4 : 2) }
+
 /// Where in the script is the speaker? Returns the index of the last word they said, or nil
 /// when the evidence is too weak to move. Small steps forward need little evidence; jumps need more.
-func locate(heard: [String], in words: [String], from cursor: Int) -> Int? {
+/// `strict` (after an off-script stretch) needs three words in a row before moving at all.
+func locate(heard: [String], in words: [String], from cursor: Int, strict: Bool = false) -> Int? {
     let tail = Array(heard.suffix(6))
     guard !tail.isEmpty, !words.isEmpty else { return nil }
     let lo = max(0, cursor - 4), hi = min(words.count - 1, cursor + 60)
@@ -70,8 +75,8 @@ func locate(heard: [String], in words: [String], from cursor: Int) -> Int? {
     for i in lo...hi where tail.suffix(2).contains(where: { similar($0, words[i]) }) {
         let score = alignScore(tail, words, endingAt: i)
         let step = i - cursor
-        let needed = (0...2).contains(step) ? 1 : (0...8).contains(step) ? 2 : 3
-        guard score >= needed else { continue }
+        let needed = strict ? 3 : (0...2).contains(step) ? 1 : (0...8).contains(step) ? 2 : 3
+        guard score >= needed, score > 1 || isSubstantial(words[i]) else { continue }
         if score > best?.score ?? 0 || (score == best?.score && abs(step) < abs(best!.i - cursor)) { best = (score, i) }
     }
     return best?.i
@@ -99,6 +104,11 @@ func runSelfTest() {
     let cue = "Say hi [smile] now" as NSString
     let c = tokenize(cue as String, skipping: [cue.range(of: "[smile]")]).map(\.word)
     precondition(c == ["say", "hi", "now"])                                    // cues are never matched
+    let d = tokenize("and then the plan was simple").map(\.word)
+    precondition(locate(heard: ["and"], in: d, from: 0) == nil)                    // a lone common word can't move it
+    precondition(locate(heard: ["plan"], in: d, from: 1) == 3)
+    precondition(locate(heard: ["two", "three"], in: s, from: 0, strict: true) == nil) // off script: needs three in a row
+    precondition(locate(heard: ["one", "two", "three"], in: s, from: 0, strict: true) == 2)
     precondition(isNewer("0.10.0", than: "0.9.2") && isNewer("1.0", than: "0.9.9") && !isNewer("0.2.0", than: "0.2.0"))
     precondition(isNewer("0.2.0", than: "0.0.0-dev") && !isNewer("0.1.9", than: "0.2"))
     print("selftest ok")

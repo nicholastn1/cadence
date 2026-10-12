@@ -185,7 +185,7 @@ final class Notch: NSObject {
         let r = renderScript(model.currentText, fontSize: CGFloat(model.settings.fontSize))
         let y = scroll.contentView.bounds.origin.y
         tv.textStorage!.setAttributedString(r.text)
-        model.locale = speechLocale(for: r.text.string)
+        model.locale = speechLocale(for: r.text.string, picked: model.current?.language)
         model.tokens = tokenize(r.text.string, locale: model.locale, skipping: r.cues)
         model.cursor = min(model.cursor, max(0, model.tokens.count - 1))
         tv.layoutManager!.ensureLayout(for: tv.textContainer!)

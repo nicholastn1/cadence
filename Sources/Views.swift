@@ -60,6 +60,22 @@ struct ContentView: View {
                         .help("Note to yourself, never read aloud: [pause] (⌘K)")
                 }
                 ToolbarItem {
+                    Menu {
+                        Picker("Voice language", selection: Binding(get: { m.current?.language ?? "" },
+                                                                    set: { m.setLanguage($0.isEmpty ? nil : $0) })) {
+                            Text("Automatic: \(Locale.current.localizedString(forIdentifier: m.locale.identifier) ?? m.locale.identifier)").tag("")
+                            Divider()
+                            ForEach(speechLanguages, id: \.id) { l in Text(l.onDevice ? l.name : "\(l.name) (online)").tag(l.id) }
+                        }
+                        .pickerStyle(.inline)
+                        Divider()
+                        Text("Languages marked online send audio to Apple. To use one offline, add it in System Settings > Keyboard > Dictation.")
+                    } label: {
+                        Label("Voice Language", systemImage: "globe")
+                    }
+                    .help("Language Cadence listens for in this script")
+                }
+                ToolbarItem {
                     Toggle(isOn: $m.settings.showOnNotch) { Label("Show on Notch", systemImage: "menubar.rectangle") }
                         .help("Show on notch")
                 }
@@ -118,8 +134,10 @@ struct Transport: View {
             Group {
                 if m.voice {
                     HStack(spacing: 8) {
-                        Circle().fill(Color(nsColor: Palette.tally)).frame(width: 8, height: 8).opacity(m.listening ? 1 : 0.3)
-                        Text(m.listening ? "Listening. Start reading." : "Starting the microphone")
+                        Circle().fill(Color(nsColor: Palette.tally)).frame(width: 8, height: 8).opacity(m.listening && !m.offScript ? 1 : 0.3)
+                        Text(!m.listening ? "Starting the microphone"
+                             : m.offScript ? "Off script. Waiting for you."
+                             : m.onDevice ? "Listening. Start reading." : "Listening online. Start reading.")
                             .foregroundStyle(.white.opacity(0.85))
                     }
                 } else {

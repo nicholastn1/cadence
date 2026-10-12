@@ -9,6 +9,7 @@ struct Script: Codable, Identifiable, Equatable {
     var id = UUID()
     var text: String
     var modified = Date()
+    var language: String?   // speech locale picked for this script; nil = detect from the text
 
     var title: String {
         let line = text.split(whereSeparator: \.isNewline).first { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -90,11 +91,14 @@ final class Prompter: ObservableObject {
             } else {
                 listener.stop()
                 listening = false
+                offScript = false
                 voiceTarget = nil
             }
         }
     }
     @Published var listening = false        // mic is live: drives the tally light
+    @Published var onDevice = true          // false: recognition goes through Apple's servers
+    @Published var offScript = false        // you're saying things that aren't in the script
     @Published var voiceError: String?
 
     var tokens: [Token] = []                // spoken words of the current script
@@ -120,6 +124,13 @@ final class Prompter: ObservableObject {
             scripts[i].modified = Date()
             notch.renderText()
         }
+    }
+
+    func setLanguage(_ id: String?) {
+        guard let i = scripts.firstIndex(where: { $0.id == selectedID }) else { return }
+        scripts[i].language = id
+        notch.renderText()
+        if voice { listener.stop(); listener.run() } // listen in the new language right away
     }
 
     func newScript() {

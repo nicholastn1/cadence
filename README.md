@@ -15,6 +15,10 @@
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue"></a>
 </p>
 
+<p align="center">
+  <img src="assets/demo.gif" width="720" alt="Cadence opening from the notch, counting down, scrolling, then following the speaker's voice word by word">
+</p>
+
 ---
 
 Cadence puts your script just under the camera, so on a call or a recording you look at the lens while you read. The text sits in a black panel that grows out of the notch, and it can follow your voice: it scrolls while you talk and waits when you stop.

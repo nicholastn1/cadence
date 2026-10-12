@@ -100,7 +100,11 @@ func takeStats(_ samples: [(t: Double, i: Int)], sentences: [Range<Int>]) -> (se
         let wpm = Double(s.count - 1) / (b - a) * 60
         if wpm < slowest?.1 ?? .infinity { slowest = (n, wpm) }
     }
-    return (last.t - first.t, Int((Double(last.i - first.i) / active * 60).rounded()), slowest?.0, slowest.map { Int($0.1.rounded()) })
+    let wpm = Double(last.i - first.i) / active * 60
+    // Sentence pace leaves out the pauses between sentences, so a "slowest" sentence can still beat
+    // the average. Only report one that's genuinely slower.
+    if let s = slowest, s.1 >= wpm { slowest = nil }
+    return (last.t - first.t, Int(wpm.rounded()), slowest?.0, slowest.map { Int($0.1.rounded()) })
 }
 
 func runSelfTest() {
@@ -137,6 +141,9 @@ func runSelfTest() {
     precondition(stats.wpm == 81 && stats.seconds == 29)
     precondition(stats.slowest == 1 && stats.slowestWPM == 60)
     precondition(takeStats([(0, 0), (5, 3)], sentences: []) == nil)                 // too short to judge
+    var even: [(t: Double, i: Int)] = []                                            // steady pace with a pause between sentences:
+    for i in 0..<40 { even.append((t: Double(i) * 0.5 + (i >= 20 ? 3 : 0), i: i)) } // no sentence is slower than average
+    precondition(takeStats(even, sentences: [0..<20, 20..<40])!.slowest == nil)
     importSelfTest()
     precondition(isNewer("0.10.0", than: "0.9.2") && isNewer("1.0", than: "0.9.9") && !isNewer("0.2.0", than: "0.2.0"))
     precondition(isNewer("0.2.0", than: "0.0.0-dev") && !isNewer("0.1.9", than: "0.2"))

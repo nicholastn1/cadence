@@ -131,9 +131,11 @@ func runSelfTest() {
     precondition(locate(heard: ["two", "three"], in: s, from: 0, strict: true) == nil) // off script: needs three in a row
     precondition(locate(heard: ["one", "two", "three"], in: s, from: 0, strict: true) == 2)
     // Pace: 20 words at 120 wpm, then 20 at 60 wpm. The second sentence is the slow one.
-    let samples = (0..<20).map { (t: Double($0) * 0.5, i: $0) } + (20..<40).map { (t: 10 + Double($0 - 20), i: $0) }
+    var samples: [(t: Double, i: Int)] = []
+    for i in 0..<40 { samples.append((t: i < 20 ? Double(i) * 0.5 : 10 + Double(i - 20), i: i)) }
     let stats = takeStats(samples, sentences: [0..<20, 20..<40])!
-    precondition(stats.wpm == 81 && stats.slowest == 1 && stats.slowestWPM == 60 && stats.seconds == 29)
+    precondition(stats.wpm == 81 && stats.seconds == 29)
+    precondition(stats.slowest == 1 && stats.slowestWPM == 60)
     precondition(takeStats([(0, 0), (5, 3)], sentences: []) == nil)                 // too short to judge
     importSelfTest()
     precondition(isNewer("0.10.0", than: "0.9.2") && isNewer("1.0", than: "0.9.9") && !isNewer("0.2.0", than: "0.2.0"))

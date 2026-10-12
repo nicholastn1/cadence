@@ -19,6 +19,10 @@
   <img src="assets/demo.gif" width="720" alt="Cadence opening from the notch, counting down, scrolling, then following the speaker's voice word by word">
 </p>
 
+<p align="center">
+  <a href="https://github.com/nicholastn1/cadence/releases/download/v0.5.1/Cadence-guide.mp4">▶ Watch the one-minute guide (with narration)</a>
+</p>
+
 ---
 
 Cadence puts your script just under the camera, so on a call or a recording you look at the lens while you read. The text sits in a black panel that grows out of the notch, and it can follow your voice: it scrolls while you talk and waits when you stop.

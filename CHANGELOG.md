@@ -2,6 +2,13 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.5.0] - 2026-10-12
+
+- Word highlighting: in voice mode, words you've read dim and the word you're on is marked.
+- Pace stats after each voice take: total time, words per minute, and your slowest sentence.
+- Import scripts from `.txt`, `.md`, `.docx`, and `.rtf` files with ⌘O or by dropping them on the sidebar. Bold in Word and RTF files becomes stress.
+- The interface is now in Portuguese (Brazil) and Spanish, following your Mac's language.
+
 ## [0.4.0] - 2026-10-12
 
 - Voice mode holds still when you go off script, like when you answer someone, and picks up when you're back. The playback bar says "Off script. Waiting for you."

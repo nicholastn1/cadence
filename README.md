@@ -26,7 +26,10 @@ Cadence puts your script just under the camera, so on a call or a recording you 
 - **Lives in the notch.** The panel springs out of the hardware notch and tucks back in, shaped like the notch itself. With **Open on hover**, it stays hidden until you point at it or start reading.
 - **Follows your voice.** Speech recognition runs on your Mac. Cadence finds where you are in the script and keeps that line under the camera. It handles numbers ("42" or "forty-two"), words you add or skip, and small mishearings. If you pause, it waits; if you go back, it follows.
 - **Hidden from screen sharing.** People on Zoom, Meet, or Teams don't see it, and it doesn't show up in screenshots.
-- **A script library.** Keep as many scripts as you like. Everything saves as you type.
+- **Highlights the word you're on.** In voice mode, words you've read dim and the current word is marked, so you never lose your place.
+- **Pace stats after each take.** Total time, words per minute, and the sentence where you slowed down.
+- **A script library.** Keep as many scripts as you like, and import `.txt`, `.md`, `.docx`, and `.rtf` files with ⌘O or by dropping them on the sidebar. Bold in Word files becomes stress. Everything saves as you type.
+- **In English, Portuguese, and Spanish.** The interface follows your Mac's language.
 - **Formatting for reading aloud.** Stress words with `**bold**`, highlight with `==amber==`, and leave yourself `[notes]` that show in red and are never read.
 - **Countdown and mirror mode.** A 3-2-1 before scrolling starts, and mirrored text for teleprompter glass.
 - **In the menu bar.** Play, switch scripts, or turn on your voice without opening the window. You can hide the icon.
@@ -84,6 +87,7 @@ You need macOS 14 or later and the Command Line Tools. Xcode isn't needed.
 | Faster or slower | ⌘] and ⌘[, or the speed slider |
 | Scroll by hand | Trackpad over the notch panel |
 | New script | ⌘N |
+| Import a script | ⌘O, or drop a file on the sidebar |
 | Stress, highlight, note | ⌘B, ⇧⌘H, ⌘K (or the toolbar) |
 | Settings | ⌘, |
 
@@ -122,13 +126,12 @@ Speech recognition runs on your Mac whenever macOS supports it for the script's 
 Cadence is a work in progress. Next up, roughly in order. Want one sooner? Open an issue or upvote one.
 
 - [ ] Signed and notarized builds
-- [ ] Highlight the exact word you're on, not just the line
-- [ ] Import scripts from `.txt`, `.md`, and `.docx` files
-- [ ] Pace stats after a take: words per minute and where you slowed down
 - [ ] Use your iPhone as a remote
-- [ ] Portuguese and Spanish interface
+- [ ] Save takes and compare your pace over time
+- [ ] Import from Google Docs and Notion
+- [ ] More interface languages (translations welcome, see [CONTRIBUTING.md](CONTRIBUTING.md))
 
-Done recently: notch hover, script library, formatting, countdown, mirror mode, fuzzy voice matching, settings, menu bar, external displays.
+Done recently: word highlighting, pace stats, file import, Portuguese and Spanish interface, off-script hold, per-script voice language, update checks.
 
 ## Contributing
 

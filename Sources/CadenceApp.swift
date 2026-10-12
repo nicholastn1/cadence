@@ -82,7 +82,7 @@ struct MenuBarMenu: View {
             Button("Update to Cadence \(r.version)…") { show("whats-new") }
             Divider()
         }
-        Button(m.isRunning && !m.voice ? "Pause" : "Play") { m.togglePlay() }.disabled(m.voice)
+        Button(m.isRunning && !m.voice ? "Pause" as LocalizedStringKey : "Play") { m.togglePlay() }.disabled(m.voice)
         Toggle("Follow My Voice", isOn: $m.voice)
         Button("Back to Top") { m.restart() }
         Divider()

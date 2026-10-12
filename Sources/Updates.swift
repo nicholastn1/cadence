@@ -52,9 +52,9 @@ final class Updater: ObservableObject {
             req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
             let (data, _) = try await URLSession.shared.data(for: req)
             latest = try JSONDecoder().decode(Release.self, from: data)
-            if manual { status = available.map { "Cadence \($0.version) is available." } ?? "You're up to date. \(current) is the latest version." }
+            if manual { status = available.map { String(localized: "Cadence \($0.version) is available.") } ?? String(localized: "You're up to date. \(current) is the latest version.") }
         } catch {
-            if manual { status = "Couldn't reach GitHub to check for updates. Check your connection and try again." }
+            if manual { status = String(localized: "Couldn't reach GitHub to check for updates. Check your connection and try again.") }
         }
     }
 
@@ -65,7 +65,7 @@ final class Updater: ObservableObject {
             return
         }
         busy = true
-        status = "Updating with Homebrew…"
+        status = String(localized: "Updating with Homebrew…")
         let p = Process()
         p.executableURL = URL(fileURLWithPath: brew)
         p.arguments = ["upgrade", "--cask", "cadence"]
@@ -79,7 +79,7 @@ final class Updater: ObservableObject {
                 let path = "/Applications/Cadence.app" // where the cask installs it
                 let installed = Bundle(path: path)?.infoDictionary?["CFBundleShortVersionString"] as? String
                 guard p.terminationStatus == 0, installed == release.version else {
-                    self.status = "Homebrew didn't install \(release.version). Run `brew upgrade --cask cadence` in Terminal to see why."
+                    self.status = String(localized: "Homebrew didn't install \(release.version). Run `brew upgrade --cask cadence` in Terminal to see why.")
                     return
                 }
                 // Relaunch the new version once this one has quit.
@@ -91,7 +91,7 @@ final class Updater: ObservableObject {
                 NSApp.terminate(nil)
             }
         }
-        do { try p.run() } catch { busy = false; status = "Homebrew didn't start: \(error.localizedDescription)" }
+        do { try p.run() } catch { busy = false; status = String(localized: "Homebrew didn't start: \(error.localizedDescription)") }
     }
 
     /// True once per version: the first launch after an update.
@@ -118,7 +118,7 @@ struct WhatsNewView: View {
                     Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 56, height: 56)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Cadence \(u.current)").font(.title2.weight(.semibold))
-                        Text(u.status ?? (u.available == nil ? "Teleprompter in your notch" : "A new version is ready."))
+                        (u.status.map { Text($0) } ?? Text(u.available == nil ? "Teleprompter in your notch" as LocalizedStringKey : "A new version is ready."))
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -131,7 +131,7 @@ struct WhatsNewView: View {
                         HStack {
                             Text("Cadence \(r.version) is available").font(.headline)
                             Spacer()
-                            Button(u.installedWithBrew ? "Update and Relaunch" : "Download") { u.update() }
+                            Button(u.installedWithBrew ? "Update and Relaunch" as LocalizedStringKey : "Download") { u.update() }
                                 .buttonStyle(.borderedProminent)
                                 .disabled(u.busy)
                         }

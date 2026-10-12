@@ -29,6 +29,10 @@ The app is a handful of Swift files in `Sources/`, compiled with `swiftc` by `bu
 
 The notch panel is hidden from screenshots on purpose. To capture it for a PR, launch with `CADENCE_CAPTURABLE=1 ./Cadence.app/Contents/MacOS/Cadence`.
 
+### Translations
+
+Interface text lives in `Resources/<language>.lproj/Localizable.strings`. The keys are the English text. To add a language, copy `pt-BR.lproj`, translate the values, and add the language code to `CFBundleLocalizations` in `build.sh`. When you add interface text in Swift, add its key to every `Localizable.strings` file. Text in `Text`, `Button`, `Toggle` and similar views is looked up automatically. Text built in code needs `String(localized:)`.
+
 `@State` and `@Observable` are macros that plain `swiftc` can't load, so keep view state in an `ObservableObject`.
 
 ## Before opening a PR

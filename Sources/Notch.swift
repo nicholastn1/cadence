@@ -188,8 +188,28 @@ final class Notch: NSObject {
         model.locale = speechLocale(for: r.text.string, picked: model.current?.language)
         model.tokens = tokenize(r.text.string, locale: model.locale, skipping: r.cues)
         model.cursor = min(model.cursor, max(0, model.tokens.count - 1))
+        var sentences: [(chars: NSRange, words: Range<Int>)] = []
+        let text = r.text.string
+        text.enumerateSubstrings(in: text.startIndex..., options: .bySentences) { _, range, _, _ in
+            let chars = NSRange(range, in: text)
+            let words = model.tokens.indices.filter { NSLocationInRange(model.tokens[$0].range.location, chars) }
+            if let a = words.first, let b = words.last { sentences.append((chars, a..<(b + 1))) }
+        }
+        model.sentences = sentences
         tv.layoutManager!.ensureLayout(for: tv.textContainer!)
         scrollTo(min(y, maxY))
+        markProgress()
+    }
+
+    /// Voice mode: words you've read dim, and the word you're on gets a soft highlight.
+    func markProgress() {
+        let lm = tv.layoutManager!, all = NSRange(location: 0, length: tv.textStorage!.length)
+        lm.removeTemporaryAttribute(.foregroundColor, forCharacterRange: all)
+        lm.removeTemporaryAttribute(.backgroundColor, forCharacterRange: all)
+        guard model.voice, !model.take.isEmpty, model.tokens.indices.contains(model.cursor) else { return }
+        let word = model.tokens[model.cursor].range
+        lm.addTemporaryAttribute(.foregroundColor, value: Palette.script.withAlphaComponent(0.38), forCharacterRange: NSRange(location: 0, length: word.location))
+        lm.addTemporaryAttribute(.backgroundColor, value: NSColor.white.withAlphaComponent(0.2), forCharacterRange: word)
     }
 
     var maxY: CGFloat { max(0, tv.frame.height - scroll.contentView.bounds.height) }

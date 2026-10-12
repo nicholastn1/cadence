@@ -5,6 +5,50 @@ let defaults = UserDefaults.standard
 func persist<T: Encodable>(_ value: T, _ key: String) { defaults.set(try? JSONEncoder().encode(value), forKey: key) }
 func load<T: Decodable>(_ key: String) -> T? { defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(T.self, from: $0) } }
 
+struct TakeSummary: Equatable {
+    var seconds: Double
+    var wpm: Int
+    var slowest: String?    // first words of the slowest sentence
+    var slowestWPM: Int?
+}
+
+/// Reads a script file. Bold text in Word and RTF documents becomes **stress**.
+func readScript(_ url: URL) -> String? {
+    let ext = url.pathExtension.lowercased()
+    if ext == "docx" || ext == "rtf" {
+        let type: NSAttributedString.DocumentType = ext == "docx" ? .officeOpenXML : .rtf
+        guard let doc = try? NSAttributedString(url: url, options: [.documentType: type], documentAttributes: nil) else { return nil }
+        let out = NSMutableString(string: doc.string)
+        var bold: [NSRange] = []
+        doc.enumerateAttribute(.font, in: NSRange(location: 0, length: doc.length)) { value, range, _ in
+            guard let f = value as? NSFont, NSFontManager.shared.traits(of: f).contains(.boldFontMask) else { return }
+            let text = (doc.string as NSString).substring(with: range)
+            if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !text.contains("\n") { bold.append(range) }
+        }
+        for r in bold.reversed() { out.insert("**", at: NSMaxRange(r)); out.insert("**", at: r.location) }
+        return out as String
+    }
+    guard let text = (try? String(contentsOf: url, encoding: .utf8)) ?? (try? String(contentsOf: url, encoding: .isoLatin1)) else { return nil }
+    // Markdown headings would show their # marks on the notch.
+    return ext == "md" || ext == "markdown" ? text.replacingOccurrences(of: #"(?m)^#{1,6}\s+"#, with: "", options: .regularExpression) : text
+}
+
+/// Bold survives import from RTF and Word; Markdown heading marks are dropped.
+func importSelfTest() {
+    let dir = FileManager.default.temporaryDirectory
+    let doc = NSMutableAttributedString(string: "Hello ", attributes: [.font: NSFont.systemFont(ofSize: 12)])
+    doc.append(NSAttributedString(string: "big", attributes: [.font: NSFont.boldSystemFont(ofSize: 12)]))
+    doc.append(NSAttributedString(string: " world", attributes: [.font: NSFont.systemFont(ofSize: 12)]))
+    let rtf = dir.appendingPathComponent("cadence-test.rtf"), docx = dir.appendingPathComponent("cadence-test.docx")
+    try! doc.rtf(from: NSRange(location: 0, length: doc.length))!.write(to: rtf)
+    try! doc.data(from: NSRange(location: 0, length: doc.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.officeOpenXML]).write(to: docx)
+    precondition(readScript(rtf) == "Hello **big** world")
+    precondition(readScript(docx)?.trimmingCharacters(in: .whitespacesAndNewlines) == "Hello **big** world")
+    let md = dir.appendingPathComponent("cadence-test.md")
+    try! "# Title\nBody".write(to: md, atomically: true, encoding: .utf8)
+    precondition(readScript(md) == "Title\nBody")
+}
+
 struct Script: Codable, Identifiable, Equatable {
     var id = UUID()
     var text: String
@@ -15,12 +59,12 @@ struct Script: Codable, Identifiable, Equatable {
         let line = text.split(whereSeparator: \.isNewline).first { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         let clean = String(line ?? "").replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "==", with: "")
             .trimmingCharacters(in: .whitespaces)
-        return clean.isEmpty ? "Untitled script" : String(clean.prefix(60))
+        return clean.isEmpty ? String(localized: "Untitled script") : String(clean.prefix(60))
     }
     var wordCount: Int { text.split(whereSeparator: \.isWhitespace).count }
     var readTime: String { // at a speaking pace of ~150 words a minute
         let minutes = Double(wordCount) / 150
-        return minutes < 1 ? "under a minute" : "about \(Int(minutes.rounded())) min"
+        return minutes < 1 ? String(localized: "under a minute") : String(localized: "about \(Int(minutes.rounded())) min")
     }
 }
 
@@ -45,7 +89,7 @@ struct Settings: Codable, Equatable {
     }
 }
 
-let welcomeScript = """
+let welcomeScript = String(localized: "welcome-script", defaultValue: """
 Welcome to Cadence.
 This text sits in your MacBook's notch, right under the camera, so you keep eye contact while you read.
 
@@ -56,7 +100,7 @@ Cadence listens on your Mac and scrolls as you speak. If you stop, it waits. If 
 Use **double asterisks** for words to stress, ==double equals== to highlight, and square brackets for notes to yourself, like [smile] or [breathe]. Notes are never read.
 
 Make a new script with Command N. Everything saves automatically.
-"""
+""")
 
 final class Prompter: ObservableObject {
     @Published var scripts: [Script] { didSet { persist(scripts, "scripts") } }
@@ -87,11 +131,15 @@ final class Prompter: ObservableObject {
                 paused = true
                 countdown = nil
                 cursor = notch.tokenIndexAtTop()
+                take = []
+                lastTake = nil
                 listener.start()
             } else {
                 listener.stop()
                 listening = false
                 offScript = false
+                summarizeTake()
+                notch.markProgress()
                 voiceTarget = nil
             }
         }
@@ -100,11 +148,14 @@ final class Prompter: ObservableObject {
     @Published var onDevice = true          // false: recognition goes through Apple's servers
     @Published var offScript = false        // you're saying things that aren't in the script
     @Published var voiceError: String?
+    @Published var lastTake: TakeSummary?   // shown after a voice take ends
 
     var tokens: [Token] = []                // spoken words of the current script
     var locale = Locale.current             // the script's language
     var cursor = 0                          // index of the last word you said
     var voiceTarget: CGFloat?               // scroll position that puts that word on the top line
+    var sentences: [(chars: NSRange, words: Range<Int>)] = []
+    var take: [(t: Double, i: Int)] = []    // when each word was reached in this voice take
     private var countdownRun = UUID()
 
     init() {
@@ -123,6 +174,25 @@ final class Prompter: ObservableObject {
             scripts[i].text = newValue
             scripts[i].modified = Date()
             notch.renderText()
+        }
+    }
+
+    func summarizeTake() {
+        defer { take = [] }
+        guard let s = takeStats(take, sentences: sentences.map(\.words)) else { return }
+        let snippet = s.slowest.map { n -> String in
+            let words = (notch.tv.string as NSString).substring(with: sentences[n].chars).split(separator: " ")
+            return words.prefix(6).joined(separator: " ") + (words.count > 6 ? "…" : "")
+        }
+        lastTake = TakeSummary(seconds: s.seconds, wpm: s.wpm, slowest: snippet, slowestWPM: s.slowestWPM)
+    }
+
+    func importScripts(_ urls: [URL]) {
+        for url in urls {
+            guard let text = readScript(url) else { continue }
+            let s = Script(text: text)
+            scripts.insert(s, at: 0)
+            selectedID = s.id
         }
     }
 
@@ -173,7 +243,9 @@ final class Prompter: ObservableObject {
         stop()
         cursor = 0
         voiceTarget = nil
+        take = []
         notch.scrollToStart()
+        notch.markProgress()
     }
 }
 

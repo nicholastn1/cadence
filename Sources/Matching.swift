@@ -82,6 +82,27 @@ func locate(heard: [String], in words: [String], from cursor: Int, strict: Bool 
     return best?.i
 }
 
+/// Pace of a voice take from (time, word index) samples, one per step forward.
+/// Gaps over 4 s count as a 1 s pause, not slow reading. `sentences` are word-index ranges;
+/// the slowest one with 6+ words is reported by index.
+func takeStats(_ samples: [(t: Double, i: Int)], sentences: [Range<Int>]) -> (seconds: Double, wpm: Int, slowest: Int?, slowestWPM: Int?)? {
+    guard let first = samples.first, let last = samples.last, last.i - first.i >= 20 else { return nil }
+    var clock = [0.0] // active reading time at each sample
+    for k in 1..<samples.count {
+        let gap = samples[k].t - samples[k - 1].t
+        clock.append(clock[k - 1] + (gap > 4 ? 1 : gap))
+    }
+    guard let active = clock.last, active > 0 else { return nil }
+    func time(at word: Int) -> Double? { samples.firstIndex { $0.i >= word }.map { clock[$0] } }
+    var slowest: (Int, Double)?
+    for (n, s) in sentences.enumerated() where s.count >= 6 {
+        guard s.upperBound - 1 <= last.i, let a = time(at: s.lowerBound), let b = time(at: s.upperBound - 1), b > a else { continue }
+        let wpm = Double(s.count - 1) / (b - a) * 60
+        if wpm < slowest?.1 ?? .infinity { slowest = (n, wpm) }
+    }
+    return (last.t - first.t, Int((Double(last.i - first.i) / active * 60).rounded()), slowest?.0, slowest.map { Int($0.1.rounded()) })
+}
+
 func runSelfTest() {
     let w = tokenize("Hello there, this is a test. This is only a TÉST!").map(\.word)
     precondition(w.last == "test")                                            // case + accents folded
@@ -109,6 +130,12 @@ func runSelfTest() {
     precondition(locate(heard: ["plan"], in: d, from: 1) == 3)
     precondition(locate(heard: ["two", "three"], in: s, from: 0, strict: true) == nil) // off script: needs three in a row
     precondition(locate(heard: ["one", "two", "three"], in: s, from: 0, strict: true) == 2)
+    // Pace: 20 words at 120 wpm, then 20 at 60 wpm. The second sentence is the slow one.
+    let samples = (0..<20).map { (t: Double($0) * 0.5, i: $0) } + (20..<40).map { (t: 10 + Double($0 - 20), i: $0) }
+    let stats = takeStats(samples, sentences: [0..<20, 20..<40])!
+    precondition(stats.wpm == 81 && stats.slowest == 1 && stats.slowestWPM == 60 && stats.seconds == 29)
+    precondition(takeStats([(0, 0), (5, 3)], sentences: []) == nil)                 // too short to judge
+    importSelfTest()
     precondition(isNewer("0.10.0", than: "0.9.2") && isNewer("1.0", than: "0.9.9") && !isNewer("0.2.0", than: "0.2.0"))
     precondition(isNewer("0.2.0", than: "0.0.0-dev") && !isNewer("0.1.9", than: "0.2"))
     print("selftest ok")

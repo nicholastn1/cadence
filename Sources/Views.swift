@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @ObservedObject var m: Prompter
@@ -19,6 +20,14 @@ struct ContentView: View {
                 }
             }
             .onDeleteCommand { if let id = m.selectedID { m.delete(id) } }
+            .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                for p in providers {
+                    _ = p.loadObject(ofClass: URL.self) { url, _ in
+                        if let url { DispatchQueue.main.async { model.importScripts([url]) } }
+                    }
+                }
+                return true
+            }
             .safeAreaInset(edge: .bottom) {
                 if let r = u.available {
                     Button { openWindow(id: "whats-new") } label: {
@@ -46,17 +55,21 @@ struct ContentView: View {
         } detail: {
             ZStack(alignment: .bottom) {
                 ScriptEditor(text: Binding(get: { m.currentText }, set: { m.currentText = $0 }))
-                Transport(m: m).padding(.bottom, 22)
+                VStack(spacing: 12) {
+                    if let t = m.lastTake { TakeCard(take: t) { m.lastTake = nil } }
+                    Transport(m: m)
+                }
+                .padding(.bottom, 22)
             }
             .navigationTitle(m.current?.title ?? "Cadence")
-            .navigationSubtitle(m.current.map { "\($0.wordCount) words, \($0.readTime) to read" } ?? "")
+            .navigationSubtitle(m.current.map { String(localized: "\($0.wordCount) words, \($0.readTime) to read") } ?? "")
             .toolbar {
                 ToolbarItemGroup {
-                    Button { editor.wrap("**", "**", placeholder: "word") } label: { Label("Stress", systemImage: "bold") }
+                    Button { editor.wrap("**", "**", placeholder: String(localized: "word")) } label: { Label("Stress", systemImage: "bold") }
                         .help("Stress a word: **word** (⌘B)")
-                    Button { editor.wrap("==", "==", placeholder: "phrase") } label: { Label("Highlight", systemImage: "highlighter") }
+                    Button { editor.wrap("==", "==", placeholder: String(localized: "phrase")) } label: { Label("Highlight", systemImage: "highlighter") }
                         .help("Highlight: ==phrase== (⇧⌘H)")
-                    Button { editor.wrap("[", "]", placeholder: "pause") } label: { Label("Note to self", systemImage: "flag") }
+                    Button { editor.wrap("[", "]", placeholder: String(localized: "pause")) } label: { Label("Note to self", systemImage: "flag") }
                         .help("Note to yourself, never read aloud: [pause] (⌘K)")
                 }
                 ToolbarItem {
@@ -65,7 +78,7 @@ struct ContentView: View {
                                                                     set: { m.setLanguage($0.isEmpty ? nil : $0) })) {
                             Text("Automatic: \(Locale.current.localizedString(forIdentifier: m.locale.identifier) ?? m.locale.identifier)").tag("")
                             Divider()
-                            ForEach(speechLanguages, id: \.id) { l in Text(l.onDevice ? l.name : "\(l.name) (online)").tag(l.id) }
+                            ForEach(speechLanguages, id: \.id) { l in (l.onDevice ? Text(l.name) : Text("\(l.name) (online)")).tag(l.id) }
                         }
                         .pickerStyle(.inline)
                         Divider()
@@ -119,14 +132,14 @@ struct Transport: View {
             }
             .disabled(m.voice)
             .opacity(m.voice ? 0.3 : 1)
-            .help(m.paused ? "Play (⌘↩)" : "Pause (⌘↩)")
+            .help(m.paused ? "Play (⌘↩)" as LocalizedStringKey : "Pause (⌘↩)")
             .onHover { caption.text = $0 ? (m.voice ? "Your voice is in control" : m.isRunning ? "Pause" : "Play") : nil }
 
             Button { m.voice.toggle() } label: {
                 Image(systemName: m.voice ? "mic.fill" : "mic")
                     .foregroundStyle(m.voice ? Color(nsColor: Palette.tally) : .white)
             }
-            .help(m.voice ? "Stop following your voice (⌘L)" : "Follow my voice (⌘L)")
+            .help(m.voice ? "Stop following your voice (⌘L)" as LocalizedStringKey : "Follow my voice (⌘L)")
             .onHover { caption.text = $0 ? (m.voice ? "Stop listening" : "Follow my voice: scrolls as you read aloud") : nil }
 
             Rectangle().fill(.white.opacity(0.16)).frame(width: 1, height: 24)
@@ -135,7 +148,7 @@ struct Transport: View {
                 if m.voice {
                     HStack(spacing: 8) {
                         Circle().fill(Color(nsColor: Palette.tally)).frame(width: 8, height: 8).opacity(m.listening && !m.offScript ? 1 : 0.3)
-                        Text(!m.listening ? "Starting the microphone"
+                        Text(!m.listening ? "Starting the microphone" as LocalizedStringKey
                              : m.offScript ? "Off script. Waiting for you."
                              : m.onDevice ? "Listening. Start reading." : "Listening online. Start reading.")
                             .foregroundStyle(.white.opacity(0.85))
@@ -162,7 +175,7 @@ struct Transport: View {
         .shadow(color: .black.opacity(0.28), radius: 20, y: 10)
         .overlay(alignment: .top) {
             if let hint {
-                Text(hint)
+                Text(LocalizedStringKey(hint))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 10).padding(.vertical, 5)
@@ -176,6 +189,44 @@ struct Transport: View {
         .animation(.easeOut(duration: 0.12), value: hint)
         .environment(\.colorScheme, .dark)
     }
+}
+
+/// How the last voice take went: total time, average pace, and the slowest sentence.
+struct TakeCard: View {
+    let take: TakeSummary
+    let close: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 22) {
+            stat("Time", Text(Duration.seconds(take.seconds).formatted(.time(pattern: .minuteSecond))))
+            stat("Pace", Text("\(take.wpm) words a minute"))
+            if let s = take.slowest, let w = take.slowestWPM {
+                stat("Slowest part", Text("“\(s)” at \(w)")).frame(maxWidth: 240, alignment: .leading)
+            }
+            Button(action: close) { Image(systemName: "xmark").font(.system(size: 11, weight: .bold)) }
+                .buttonStyle(.plain).foregroundStyle(.secondary)
+                .help("Dismiss")
+        }
+        .padding(.horizontal, 18).padding(.vertical, 12)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.regularMaterial))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(.separator))
+    }
+
+    func stat(_ label: LocalizedStringKey, _ value: Text) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.caption).foregroundStyle(.secondary)
+            value.font(.callout.weight(.semibold)).lineLimit(2)
+        }
+    }
+}
+
+/// Opens .txt, .md, .docx and .rtf files as new scripts.
+func showImportPanel() {
+    let panel = NSOpenPanel()
+    panel.allowsMultipleSelection = true
+    panel.allowedContentTypes = [.plainText, .rtf] + ["md", "markdown", "docx"].compactMap { UTType(filenameExtension: $0) }
+    panel.message = String(localized: "Choose scripts to import. Bold text in Word files becomes stress.")
+    if panel.runModal() == .OK { model.importScripts(panel.urls) }
 }
 
 /// Lets toolbar buttons and menu commands reach the editor's selection.
@@ -308,14 +359,15 @@ struct PrompterCommands: Commands {
         }
         CommandGroup(replacing: .newItem) {
             Button("New Script") { m.newScript() }.keyboardShortcut("n")
+            Button("Import Script…") { showImportPanel() }.keyboardShortcut("o")
         }
         CommandGroup(after: .textFormatting) {
-            Button("Stress") { editor.wrap("**", "**", placeholder: "word") }.keyboardShortcut("b")
-            Button("Highlight") { editor.wrap("==", "==", placeholder: "phrase") }.keyboardShortcut("h", modifiers: [.command, .shift])
-            Button("Note to Self") { editor.wrap("[", "]", placeholder: "pause") }.keyboardShortcut("k")
+            Button("Stress") { editor.wrap("**", "**", placeholder: String(localized: "word")) }.keyboardShortcut("b")
+            Button("Highlight") { editor.wrap("==", "==", placeholder: String(localized: "phrase")) }.keyboardShortcut("h", modifiers: [.command, .shift])
+            Button("Note to Self") { editor.wrap("[", "]", placeholder: String(localized: "pause")) }.keyboardShortcut("k")
         }
         CommandMenu("Prompter") {
-            Button(m.isRunning && !m.voice ? "Pause" : "Play") { m.togglePlay() }
+            Button(m.isRunning && !m.voice ? "Pause" as LocalizedStringKey : "Play") { m.togglePlay() }
                 .keyboardShortcut(.return)
                 .disabled(m.voice)
             Button("Back to Top") { m.restart() }.keyboardShortcut("r")

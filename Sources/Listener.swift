@@ -1,4 +1,5 @@
 import AVFoundation
+import QuartzCore
 import NaturalLanguage
 import Speech
 
@@ -30,9 +31,9 @@ final class Listener {
             SFSpeechRecognizer.requestAuthorization { speech in
                 DispatchQueue.main.async {
                     if !mic {
-                        self.fail("Cadence can't hear you. Allow microphone access in System Settings > Privacy & Security > Microphone.")
+                        self.fail(String(localized: "Cadence can't hear you. Allow microphone access in System Settings > Privacy & Security > Microphone."))
                     } else if speech != .authorized {
-                        self.fail("Cadence can't recognize speech. Allow it in System Settings > Privacy & Security > Speech Recognition.")
+                        self.fail(String(localized: "Cadence can't recognize speech. Allow it in System Settings > Privacy & Security > Speech Recognition."))
                     } else {
                         self.run()
                     }
@@ -44,7 +45,7 @@ final class Listener {
     func run() {
         guard model.voice else { return }
         guard let rec = SFSpeechRecognizer(locale: model.locale) ?? SFSpeechRecognizer(), rec.isAvailable else {
-            return fail("Speech recognition isn't available for this script's language. Check your internet connection or try another language.")
+            return fail(String(localized: "Speech recognition isn't available for this script's language. Check your internet connection or try another language."))
         }
         let req = SFSpeechAudioBufferRecognitionRequest()
         req.shouldReportPartialResults = true
@@ -54,7 +55,7 @@ final class Listener {
         input.removeTap(onBus: 0)
         input.installTap(onBus: 0, bufferSize: 1024, format: input.outputFormat(forBus: 0)) { buf, _ in req.append(buf) }
         engine.prepare()
-        do { try engine.start() } catch { return fail("The microphone didn't start: \(error.localizedDescription)") }
+        do { try engine.start() } catch { return fail(String(localized: "The microphone didn't start: \(error.localizedDescription)")) }
         model.listening = true
         model.onDevice = req.requiresOnDeviceRecognition
         heardCount = 0
@@ -85,7 +86,9 @@ final class Listener {
         }
         unmatched = 0
         model.offScript = false
+        if i > model.cursor || model.take.isEmpty { model.take.append((CACurrentMediaTime(), i)) }
         model.cursor = i
+        notch.markProgress()
         model.voiceTarget = notch.targetY(for: model.tokens[i].range)
     }
 

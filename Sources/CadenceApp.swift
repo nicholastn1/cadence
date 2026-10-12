@@ -37,6 +37,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // the window and Dock icon. Quit in the menu bar menu really quits.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard model.settings.showInMenuBar, !quitting else { return .terminateNow }
+        // Logout, restart and shutdown carry a quit reason; never block those.
+        if NSAppleEventManager.shared().currentAppleEvent?.attributeDescriptor(forKeyword: AEKeyword(kAEQuitReason)) != nil { return .terminateNow }
         NSApp.windows.filter { $0.isVisible && !($0 is Panel) && $0.className != "NSStatusBarWindow" }.forEach { $0.close() }
         NSApp.setActivationPolicy(.accessory)
         return .terminateCancel

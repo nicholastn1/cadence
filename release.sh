@@ -13,6 +13,7 @@ ZIP=Cadence-$V.zip
 ditto -c -k --keepParent Cadence.app "$ZIP"
 SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
 
+git push origin main
 git tag "v$V" && git push origin "v$V"
 gh release create "v$V" "$ZIP" --title "Cadence $V" --generate-notes
 

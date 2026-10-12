@@ -69,20 +69,25 @@ final class Updater: ObservableObject {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: brew)
         p.arguments = ["upgrade", "--cask", "cadence"]
+        var env = ProcessInfo.processInfo.environment
+        env["HOMEBREW_AUTO_UPDATE_SECS"] = "0" // refresh the tap first, or brew may not see the new version yet
+        env["HOMEBREW_NO_ENV_HINTS"] = "1"
+        p.environment = env
         p.terminationHandler = { p in
             DispatchQueue.main.async {
                 self.busy = false
-                guard p.terminationStatus == 0 else {
-                    self.status = "Homebrew couldn't update Cadence. Run `brew upgrade --cask cadence` in Terminal to see why."
+                let path = "/Applications/Cadence.app" // where the cask installs it
+                let installed = Bundle(path: path)?.infoDictionary?["CFBundleShortVersionString"] as? String
+                guard p.terminationStatus == 0, installed == release.version else {
+                    self.status = "Homebrew didn't install \(release.version). Run `brew upgrade --cask cadence` in Terminal to see why."
                     return
                 }
                 // Relaunch the new version once this one has quit.
-                let path = FileManager.default.fileExists(atPath: "/Applications/Cadence.app") ? "/Applications/Cadence.app" : Bundle.main.bundlePath // where brew put it
                 let relaunch = Process()
                 relaunch.executableURL = URL(fileURLWithPath: "/bin/sh")
                 relaunch.arguments = ["-c", "sleep 1; open \"\(path)\""]
                 try? relaunch.run()
-                (NSApp.delegate as? AppDelegate)?.quitting = true
+                AppDelegate.quitting = true
                 NSApp.terminate(nil)
             }
         }

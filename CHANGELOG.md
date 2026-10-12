@@ -2,6 +2,11 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.3.1] - 2026-10-12
+
+- Fixed: Quit in the menu bar left Cadence running in the background.
+- Fixed: Update and Relaunch could reopen the old version, and the old copy stayed in the menu bar. Cadence now refreshes Homebrew first and checks that the new version is installed before relaunching.
+
 ## [0.3.0] - 2026-10-12
 
 - Check for updates: Cadence looks for new versions once a day, and you can check from the Cadence menu or the menu bar.

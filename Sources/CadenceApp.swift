@@ -33,7 +33,7 @@ struct CadenceApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    var quitting = false
+    static var quitting = false // static: under SwiftUI, NSApp.delegate is not this object
 
     func applicationDidFinishLaunching(_ n: Notification) {
         notch.start()
@@ -43,7 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // With the menu bar icon showing, quitting from the Dock or with Command-Q only hides
     // the window and Dock icon. Quit in the menu bar menu really quits.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard model.settings.showInMenuBar, !quitting else { return .terminateNow }
+        guard model.settings.showInMenuBar, !AppDelegate.quitting else { return .terminateNow }
         // Logout, restart and shutdown carry a quit reason; never block those.
         if NSAppleEventManager.shared().currentAppleEvent?.attributeDescriptor(forKeyword: AEKeyword(kAEQuitReason)) != nil { return .terminateNow }
         NSApp.windows.filter { $0.isVisible && !($0 is Panel) && $0.className != "NSStatusBarWindow" }.forEach { $0.close() }
@@ -97,7 +97,7 @@ struct MenuBarMenu: View {
         Button("Hide Menu Bar Icon") { m.settings.showInMenuBar = false }
         Divider()
         Button("Quit Cadence") {
-            (NSApp.delegate as? AppDelegate)?.quitting = true
+            AppDelegate.quitting = true
             NSApp.terminate(nil)
         }
         .keyboardShortcut("q")

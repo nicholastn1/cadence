@@ -96,6 +96,7 @@ final class Updater: ObservableObject {
 
     /// True once per version: the first launch after an update.
     func justUpdated() -> Bool {
+        guard !isDevBuild else { return false } // dev builds would look like an "update" every time
         let seen = defaults.string(forKey: "lastSeenVersion")
         defaults.set(current, forKey: "lastSeenVersion")
         return seen != nil && seen != current

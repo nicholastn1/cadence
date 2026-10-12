@@ -37,14 +37,13 @@ Cadence puts your script just under the camera, so on a call or a recording you 
 - **Highlights the word you're on.** In voice mode, words you've read dim and the current word is marked, so you never lose your place.
 - **Pace stats after each take.** Total time, words per minute, and the sentence where you slowed down.
 - **A script library.** Keep as many scripts as you like, and import `.txt`, `.md`, `.docx`, and `.rtf` files with ⌘O or by dropping them on the sidebar. Bold in Word files becomes stress. Everything saves as you type.
-- **In English, Portuguese, and Spanish.** The interface follows your Mac's language.
 - **Formatting for reading aloud.** Stress words with `**bold**`, highlight with `==amber==`, and leave yourself `[notes]` that show in red and are never read.
 - **Countdown and mirror mode.** A 3-2-1 before scrolling starts, and mirrored text for teleprompter glass.
 - **In the menu bar.** Play, switch scripts, or turn on your voice without opening the window. You can hide the icon.
 - **Tells you about updates.** A daily check, release notes inside the app, and one-click updates for Homebrew installs.
 - **Adjustable.** Panel width, visible lines, text size, speed, and which display to use.
 - **Holds still when you go off script.** Answer a question or chat for a moment and Cadence waits; it picks up again when you're back on the script.
-- **Works in 34 languages.** Voice mode detects each script's language, or you can pick one. A Portuguese script works on a Mac set to English.
+- **Full support in English, Portuguese, and Spanish.** The interface, the welcome script, and voice mode all work in these three. Voice mode also works in 31 more languages; there the interface stays in English. See [Languages](#languages).
 
 ## Install
 
@@ -118,7 +117,15 @@ Cadence doesn't listen for *when* you speak, only for *what* you say. Apple's sp
 
 Numbers match either way ("42" or "forty-two"), accents are ignored, and words you add or skip are tolerated.
 
-**Languages.** Voice mode works in the 34 languages macOS speech recognition supports. The globe button in the toolbar picks the language per script, and Automatic is the default. Languages marked *online* send audio to Apple. To use one offline, add it in **System Settings > Keyboard > Dictation**. In languages Apple doesn't support, steady scrolling still works.
+### Languages
+
+| | Interface | Voice mode |
+|---|---|---|
+| English, Portuguese, Spanish | ✓ | ✓ |
+| 31 more: Arabic, Catalan, Chinese, Croatian, Czech, Danish, Dutch, Finnish, French, German, Greek, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malay, Norwegian, Polish, Romanian, Russian, Slovak, Swedish, Thai, Turkish, Ukrainian, Vietnamese, Cantonese, Shanghainese | English | ✓ |
+| Any other language | English | Steady scrolling only |
+
+Voice mode uses macOS speech recognition, so it covers the languages macOS covers. Each script picks its language on its own: Automatic by default, or choose one with the globe button in the toolbar. Some languages need Apple's servers; Cadence marks those *online*. To use one offline, add it in **System Settings > Keyboard > Dictation**.
 
 ## Requirements
 

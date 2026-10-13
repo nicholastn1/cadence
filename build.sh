@@ -8,7 +8,7 @@ VERSION=${VERSION:-0.0.0-dev}
 APP=Cadence.app
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-swiftc -O -parse-as-library -o "$APP/Contents/MacOS/Cadence" Sources/*.swift
+swiftc -O -parse-as-library -target arm64-apple-macos14.0 -o "$APP/Contents/MacOS/Cadence" Sources/*.swift
 cp assets/AppIcon.icns CHANGELOG.md "$APP/Contents/Resources/"
 cp -R Resources/*.lproj "$APP/Contents/Resources/"
 cat > "$APP/Contents/Info.plist" <<PLIST

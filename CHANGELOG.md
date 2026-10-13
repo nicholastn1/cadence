@@ -2,6 +2,10 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.5.2] - 2026-10-13
+
+- Fixed: Cadence wouldn't open on macOS versions older than the one it was built on ("You can't use this version of the application"). It runs on macOS 14 Sonoma and later again.
+
 ## [0.5.1] - 2026-10-12
 
 - Fixed: pace stats could name a "slowest part" that was faster than your average. It now only appears when that sentence really was slower.

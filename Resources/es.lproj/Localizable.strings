@@ -17,6 +17,7 @@
 "Cadence can't hear you. Allow microphone access in System Settings > Privacy & Security > Microphone." = "Cadence no puede oírte. Permite el acceso al micrófono en Ajustes del Sistema > Privacidad y Seguridad > Micrófono.";
 "Cadence can't recognize speech. Allow it in System Settings > Privacy & Security > Speech Recognition." = "Cadence no puede reconocer el habla. Permítelo en Ajustes del Sistema > Privacidad y Seguridad > Reconocimiento de Voz.";
 "Speech recognition isn't available for this script's language. Check your internet connection or try another language." = "El reconocimiento de voz no está disponible en el idioma de este guion. Revisa tu conexión o prueba otro idioma.";
+"Speech recognition isn't working on this Mac: %@" = "El reconocimiento de voz no funciona en este Mac: %@";
 "The microphone didn't start: %@" = "El micrófono no se inició: %@";
 "Cadence %@ is available." = "Cadence %@ está disponible.";
 "You're up to date. %@ is the latest version." = "Estás al día. La %@ es la versión más reciente.";

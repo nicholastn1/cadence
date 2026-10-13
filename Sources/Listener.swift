@@ -25,8 +25,16 @@ final class Listener {
     var task: SFSpeechRecognitionTask?
     var heardCount = 0      // words in the current task's transcript
     var unmatched = 0       // words heard since the last match; 6+ means you're off script
+    var online = false      // on-device recognition failed on this Mac; use Apple's servers
+    var quickFails = 0      // tasks in a row that errored right away without hearing anything
 
     func start() {
+        online = false
+        quickFails = 0
+        requestAccess()
+    }
+
+    func requestAccess() {
         AVCaptureDevice.requestAccess(for: .audio) { mic in
             SFSpeechRecognizer.requestAuthorization { speech in
                 DispatchQueue.main.async {
@@ -49,7 +57,7 @@ final class Listener {
         }
         let req = SFSpeechAudioBufferRecognitionRequest()
         req.shouldReportPartialResults = true
-        req.requiresOnDeviceRecognition = rec.supportsOnDeviceRecognition // private, and no 1-minute cap
+        req.requiresOnDeviceRecognition = rec.supportsOnDeviceRecognition && !online // private, and no 1-minute cap
         req.contextualStrings = Array(Set(model.tokens.map(\.word)).prefix(100))
         let input = engine.inputNode
         input.removeTap(onBus: 0)
@@ -60,14 +68,25 @@ final class Listener {
         model.onDevice = req.requiresOnDeviceRecognition
         heardCount = 0
 
+        let began = CACurrentMediaTime()
         var me: SFSpeechRecognitionTask?
         me = rec.recognitionTask(with: req) { result, error in
             DispatchQueue.main.async {
                 guard self.task === me else { return } // stale callback from a previous task
-                if let result { self.heard(result.bestTranscription.formattedString) }
+                if let result { self.quickFails = 0; self.heard(result.bestTranscription.formattedString) }
                 // Recognition tasks end on long silences; quietly start a fresh one.
                 if error != nil || result?.isFinal == true {
                     self.stop()
+                    // An error within a second or two, before hearing anything, is a broken recognizer, not silence.
+                    // Restarting it would loop forever and flicker the mic indicator.
+                    if let error, self.heardCount == 0, CACurrentMediaTime() - began < 2 {
+                        self.quickFails += 1
+                        // ponytail: falls back to online instead of downloading the on-device model (AssetInventory) first
+                        if req.requiresOnDeviceRecognition { self.online = true }
+                        else if self.quickFails >= 3 {
+                            return self.fail(String(localized: "Speech recognition isn't working on this Mac: \(error.localizedDescription)"))
+                        }
+                    }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { if model.voice { self.run() } }
                 }
             }

@@ -2,6 +2,10 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.5.3] - 2026-10-13
+
+- Fixed: on Macs where on-device speech recognition isn't set up, voice mode never followed you and the microphone indicator flickered in the menu bar. Cadence now switches to online recognition, and if that fails too, it stops and tells you why.
+
 ## [0.5.2] - 2026-10-13
 
 - Fixed: Cadence wouldn't open on macOS versions older than the one it was built on ("You can't use this version of the application"). It runs on macOS 14 Sonoma and later again.

@@ -34,6 +34,8 @@
 "Download" = "Descargar";
 "Release history" = "Historial de versiones";
 "%lld words" = "%lld palabras";
+"Rename Script" = "Renombrar Guion";
+"Script name" = "Nombre del guion";
 "Delete Script" = "Eliminar Guion";
 "Update available" = "Actualización disponible";
 "Cadence %@: see what's new" = "Cadence %@: mira las novedades";

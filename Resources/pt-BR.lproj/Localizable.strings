@@ -34,6 +34,8 @@
 "Download" = "Baixar";
 "Release history" = "Histórico de versões";
 "%lld words" = "%lld palavras";
+"Rename Script" = "Renomear Roteiro";
+"Script name" = "Nome do roteiro";
 "Delete Script" = "Apagar Roteiro";
 "Update available" = "Atualização disponível";
 "Cadence %@: see what's new" = "Cadence %@: veja as novidades";

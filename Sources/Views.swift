@@ -5,18 +5,36 @@ struct ContentView: View {
     @ObservedObject var m: Prompter
     @ObservedObject var u = updater
     @Environment(\.openWindow) var openWindow
+    @StateObject private var rename = Rename()
+    @FocusState var renameFocused: Bool
+
+    func commitRename() {
+        if let id = rename.id { m.rename(id, to: rename.draft) }
+        rename.id = nil
+    }
 
     var body: some View {
         NavigationSplitView {
             List(selection: $m.selectedID) {
                 ForEach(m.scripts) { s in
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(s.title).lineLimit(1)
+                        if rename.id == s.id {
+                            TextField("Script name", text: $rename.draft)
+                                .focused($renameFocused)
+                                .onSubmit(commitRename)
+                                .onExitCommand { rename.id = nil }
+                                .onChange(of: renameFocused) { _, focused in if !focused { commitRename() } }
+                        } else {
+                            Text(s.title).lineLimit(1)
+                        }
                         Text("\(s.wordCount) words").font(.caption).foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 3)
                     .tag(s.id)
-                    .contextMenu { Button("Delete Script", role: .destructive) { m.delete(s.id) } }
+                    .contextMenu {
+                        Button("Rename Script") { rename.draft = s.title; rename.id = s.id; DispatchQueue.main.async { renameFocused = true } }
+                        Button("Delete Script", role: .destructive) { m.delete(s.id) }
+                    }
                 }
             }
             .onDeleteCommand { if let id = m.selectedID { m.delete(id) } }
@@ -101,6 +119,12 @@ struct ContentView: View {
             Text(m.voiceError ?? "")
         }
     }
+}
+
+/// The sidebar row being renamed, and its name so far.
+final class Rename: ObservableObject {
+    @Published var id: UUID?
+    @Published var draft = ""
 }
 
 final class Caption: ObservableObject { @Published var text: String? }

@@ -2,6 +2,11 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.5.4] - 2026-10-14
+
+- Rename scripts: right-click a script in the sidebar and choose Rename Script. Clear the name to go back to using the first line.
+- When Update and Relaunch fails, Cadence now shows Homebrew's error instead of only asking you to run it in Terminal.
+
 ## [0.5.3] - 2026-10-13
 
 - Fixed: on Macs where on-device speech recognition isn't set up, voice mode never followed you and the microphone indicator flickered in the menu bar. Cadence now switches to online recognition, and if that fails too, it stops and tells you why.

@@ -73,13 +73,22 @@ final class Updater: ObservableObject {
         env["HOMEBREW_AUTO_UPDATE_SECS"] = "0" // refresh the tap first, or brew may not see the new version yet
         env["HOMEBREW_NO_ENV_HINTS"] = "1"
         p.environment = env
+        // brew's output goes to a file, not a pipe: a pipe nobody reads can fill up and hang brew.
+        let log = FileManager.default.temporaryDirectory.appendingPathComponent("cadence-brew.log")
+        FileManager.default.createFile(atPath: log.path, contents: nil)
+        let out = try? FileHandle(forWritingTo: log)
+        p.standardOutput = out
+        p.standardError = out
         p.terminationHandler = { p in
             DispatchQueue.main.async {
                 self.busy = false
                 let path = "/Applications/Cadence.app" // where the cask installs it
                 let installed = Bundle(path: path)?.infoDictionary?["CFBundleShortVersionString"] as? String
                 guard p.terminationStatus == 0, installed == release.version else {
-                    self.status = String(localized: "Homebrew didn't install \(release.version). Run `brew upgrade --cask cadence` in Terminal to see why.")
+                    // brew's own reason: its last "Error:" line, else its last line.
+                    let lines = ((try? String(contentsOf: log, encoding: .utf8)) ?? "").split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                    let reason = lines.last { $0.hasPrefix("Error:") } ?? lines.last ?? ""
+                    self.status = String(localized: "Homebrew didn't install \(release.version). Run `brew upgrade --cask cadence` in Terminal to see why.") + (reason.isEmpty ? "" : "\n\(reason)")
                     return
                 }
                 // Relaunch the new version once this one has quit.

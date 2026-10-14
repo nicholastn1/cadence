@@ -54,8 +54,10 @@ struct Script: Codable, Identifiable, Equatable {
     var text: String
     var modified = Date()
     var language: String?   // speech locale picked for this script; nil = detect from the text
+    var name: String?       // set by renaming; nil = the first line
 
     var title: String {
+        if let name { return name }
         let line = text.split(whereSeparator: \.isNewline).first { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         let clean = String(line ?? "").replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "==", with: "")
             .trimmingCharacters(in: .whitespaces)
@@ -199,6 +201,7 @@ final class Prompter: ObservableObject {
     func setLanguage(_ id: String?) {
         guard let i = scripts.firstIndex(where: { $0.id == selectedID }) else { return }
         scripts[i].language = id
+        scripts[i].modified = Date()
         notch.renderText()
         if voice { listener.stop(); listener.run() } // listen in the new language right away
     }
@@ -207,6 +210,13 @@ final class Prompter: ObservableObject {
         let s = Script(text: "")
         scripts.insert(s, at: 0)
         selectedID = s.id
+    }
+
+    func rename(_ id: UUID, to name: String) {
+        guard let i = scripts.firstIndex(where: { $0.id == id }) else { return }
+        let clean = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        scripts[i].name = clean.isEmpty ? nil : clean // clearing the name goes back to the first line
+        scripts[i].modified = Date()
     }
 
     func delete(_ id: UUID) {

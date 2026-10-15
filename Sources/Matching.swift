@@ -145,6 +145,7 @@ func runSelfTest() {
     for i in 0..<40 { even.append((t: Double(i) * 0.5 + (i >= 20 ? 3 : 0), i: i)) } // no sentence is slower than average
     precondition(takeStats(even, sentences: [0..<20, 20..<40])!.slowest == nil)
     importSelfTest()
+    mergeSelfTest()
     precondition(isNewer("0.10.0", than: "0.9.2") && isNewer("1.0", than: "0.9.9") && !isNewer("0.2.0", than: "0.2.0"))
     precondition(isNewer("0.2.0", than: "0.0.0-dev") && !isNewer("0.1.9", than: "0.2"))
     print("selftest ok")

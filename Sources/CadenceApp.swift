@@ -38,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ n: Notification) {
         notch.start()
         updater.startChecking()
+        syncer.start()
     }
 
     // With the menu bar icon showing, quitting from the Dock or with Command-Q only hides
@@ -87,7 +88,7 @@ struct MenuBarMenu: View {
         Button("Back to Top") { m.restart() }
         Divider()
         Picker("Script", selection: $m.selectedID) {
-            ForEach(m.scripts) { Text($0.title).tag(Optional($0.id)) }
+            ForEach(m.visible) { Text($0.title).tag(Optional($0.id)) }
         }
         Toggle("Show on Notch", isOn: $m.settings.showOnNotch)
         Divider()

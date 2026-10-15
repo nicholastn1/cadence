@@ -55,6 +55,7 @@ struct Script: Codable, Identifiable, Equatable {
     var modified = Date()
     var language: String?   // speech locale picked for this script; nil = detect from the text
     var name: String?       // set by renaming; nil = the first line
+    var deleted: Bool?      // a tombstone, kept so the deletion reaches your other Macs
 
     var title: String {
         if let name { return name }
@@ -68,6 +69,27 @@ struct Script: Codable, Identifiable, Equatable {
         let minutes = Double(wordCount) / 150
         return minutes < 1 ? String(localized: "under a minute") : String(localized: "about \(Int(minutes.rounded())) min")
     }
+}
+
+/// The newest copy of each script wins; scripts only one side has are kept. The server merges the same way.
+func mergeScripts(_ local: [Script], _ remote: [Script]) -> [Script] {
+    var out = local, added: [Script] = []
+    for r in remote {
+        if let i = out.firstIndex(where: { $0.id == r.id }) {
+            if r.modified > out[i].modified { out[i] = r }
+        } else { added.append(r) }
+    }
+    return added + out
+}
+
+func mergeSelfTest() {
+    let t = Date()
+    var a = Script(text: "one"), b = Script(text: "two")
+    a.modified = t; b.modified = t
+    var newerA = a; newerA.text = "one, edited"; newerA.modified = t + 1
+    var staleB = b; staleB.text = "old"; staleB.modified = t - 1
+    let c = Script(text: "from the other Mac")
+    precondition(mergeScripts([a, b], [newerA, staleB, c]) == [c, newerA, b])
 }
 
 struct Settings: Codable, Equatable {
@@ -105,7 +127,8 @@ Make a new script with Command N. Everything saves automatically.
 """)
 
 final class Prompter: ObservableObject {
-    @Published var scripts: [Script] { didSet { persist(scripts, "scripts") } }
+    @Published var scripts: [Script] { didSet { persist(scripts, "scripts"); syncer.changed() } } // includes tombstones
+    var visible: [Script] { scripts.filter { $0.deleted != true } }
     @Published var selectedID: UUID? {
         didSet {
             guard selectedID != oldValue else { return }
@@ -163,12 +186,12 @@ final class Prompter: ObservableObject {
     init() {
         scripts = load("scripts") ?? []
         settings = Settings.saved()
-        if scripts.isEmpty { scripts = [Script(text: defaults.string(forKey: "text") ?? welcomeScript)] } // "text": v0.1's single script
+        if visible.isEmpty { scripts.insert(Script(text: defaults.string(forKey: "text") ?? welcomeScript), at: 0) } // "text": v0.1's single script
         let saved = UUID(uuidString: defaults.string(forKey: "selected") ?? "")
-        _selectedID = Published(initialValue: scripts.contains { $0.id == saved } ? saved : scripts.first?.id) // no didSet during init
+        _selectedID = Published(initialValue: visible.contains { $0.id == saved } ? saved : visible.first?.id) // no didSet during init
     }
 
-    var current: Script? { scripts.first { $0.id == selectedID } }
+    var current: Script? { visible.first { $0.id == selectedID } }
     var currentText: String {
         get { current?.text ?? "" }
         set {
@@ -220,9 +243,20 @@ final class Prompter: ObservableObject {
     }
 
     func delete(_ id: UUID) {
-        scripts.removeAll { $0.id == id }
-        if scripts.isEmpty { scripts = [Script(text: "")] }
-        if !scripts.contains(where: { $0.id == selectedID }) { selectedID = scripts.first?.id }
+        guard let i = scripts.firstIndex(where: { $0.id == id }) else { return }
+        scripts[i] = Script(id: id, text: "", modified: Date(), deleted: true) // the text goes too, here and on the server
+        if visible.isEmpty { scripts.insert(Script(text: ""), at: 0) }
+        if !visible.contains(where: { $0.id == selectedID }) { selectedID = visible.first?.id }
+    }
+
+    /// Takes in what the server sent, keeping any edits made while the request was out.
+    func applyRemote(_ remote: [Script]) {
+        let merged = mergeScripts(scripts, remote)
+        guard merged != scripts else { return }
+        let before = current
+        scripts = merged
+        if !visible.contains(where: { $0.id == selectedID }) { selectedID = visible.first?.id }
+        else if current != before { notch.renderText() }
     }
 
     var isRunning: Bool { !paused || countdown != nil || voice }

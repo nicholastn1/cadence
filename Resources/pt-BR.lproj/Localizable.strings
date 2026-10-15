@@ -107,3 +107,16 @@
 "phrase" = "frase";
 "pause" = "pausa";
 "welcome-script" = "Bem-vindo ao Cadence.\nEste texto fica no notch do seu MacBook, logo abaixo da câmera, para você manter o contato visual enquanto lê.\n\nAperte Reproduzir para rolar num ritmo constante, ou ligue o microfone e simplesmente comece a ler em voz alta. [pausa]\n\nO Cadence ouve no seu Mac e rola conforme você fala. Se você para, ele espera. Se você volta, ele acompanha.\n\nUse **asteriscos duplos** para palavras com ênfase, ==iguais duplos== para destacar, e colchetes para notas para você, como [sorria] ou [respire]. As notas nunca são lidas.\n\nCrie um novo roteiro com Command N. Tudo é salvo automaticamente.";
+
+/* Sync */
+"Sync" = "Sincronização";
+"Signed in as" = "Conectado como";
+"Sign Out" = "Sair";
+"Sign in with Google" = "Entrar com Google";
+"Your scripts on every Mac" = "Seus roteiros em todos os Macs";
+"Sign in with the same Google account on each Mac." = "Entre com a mesma conta Google em cada Mac.";
+"Google sign-in didn't finish. Try again." = "O login com Google não terminou. Tente de novo.";
+"Google didn't confirm the sign-in. Try again." = "O Google não confirmou o login. Tente de novo.";
+"You were signed out. Sign in again to keep syncing." = "Você foi desconectado. Entre de novo para continuar sincronizando.";
+"Couldn't sync: %@" = "Não foi possível sincronizar: %@";
+"The server answered %lld." = "O servidor respondeu %lld.";

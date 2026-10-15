@@ -16,7 +16,7 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $m.selectedID) {
-                ForEach(m.scripts) { s in
+                ForEach(m.visible) { s in
                     VStack(alignment: .leading, spacing: 3) {
                         if rename.id == s.id {
                             TextField("Script name", text: $rename.draft)
@@ -329,9 +329,24 @@ struct ScriptEditor: NSViewRepresentable {
 
 struct SettingsView: View {
     @ObservedObject var m: Prompter
+    @ObservedObject var s = syncer
 
     var body: some View {
         Form {
+            Section("Sync") {
+                if let email = s.email {
+                    LabeledContent("Signed in as") { Text(email) }
+                    Button("Sign Out") { s.signOut() }
+                } else {
+                    LabeledContent {
+                        Button("Sign in with Google") { s.signIn() }.disabled(s.busy)
+                    } label: {
+                        Text("Your scripts on every Mac")
+                        Text("Sign in with the same Google account on each Mac.")
+                    }
+                }
+                if let status = s.status { Text(status).foregroundStyle(.secondary) }
+            }
             Section("General") {
                 Toggle(isOn: $m.settings.showInMenuBar) {
                     Text("Show in menu bar")

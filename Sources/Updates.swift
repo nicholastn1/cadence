@@ -83,7 +83,8 @@ final class Updater: ObservableObject {
             DispatchQueue.main.async {
                 self.busy = false
                 let path = "/Applications/Cadence.app" // where the cask installs it
-                let installed = Bundle(path: path)?.infoDictionary?["CFBundleShortVersionString"] as? String
+                // Read the plist from disk: Bundle(path:) is cached, and for this path it's the running, old app.
+                let installed = NSDictionary(contentsOfFile: path + "/Contents/Info.plist")?["CFBundleShortVersionString"] as? String
                 guard p.terminationStatus == 0, installed == release.version else {
                     // brew's own reason: its last "Error:" line, else its last line.
                     let lines = ((try? String(contentsOf: log, encoding: .utf8)) ?? "").split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }

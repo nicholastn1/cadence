@@ -2,6 +2,10 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.6.1] - 2026-10-15
+
+- Fixed: Update and Relaunch said Homebrew didn't install the new version even when it had, and Cadence didn't relaunch. The update was there; Cadence was reading its own old version number.
+
 ## [0.6.0] - 2026-10-15
 
 - Sync across Macs: sign in with Google in Settings and your scripts follow you to every Mac signed in with the same account. Edits sync a couple of seconds after you stop typing; the newest edit of each script wins.

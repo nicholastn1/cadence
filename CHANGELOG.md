@@ -2,6 +2,11 @@
 
 All notable changes to Cadence. Versions follow [Semantic Versioning](https://semver.org); while we're on 0.x, anything can change.
 
+## [0.6.0] - 2026-10-15
+
+- Sync across Macs: sign in with Google in Settings and your scripts follow you to every Mac signed in with the same account. Edits sync a couple of seconds after you stop typing; the newest edit of each script wins.
+- Deleting a script deletes it on your other Macs too.
+
 ## [0.5.4] - 2026-10-14
 
 - Rename scripts: right-click a script in the sidebar and choose Rename Script. Clear the name to go back to using the first line.

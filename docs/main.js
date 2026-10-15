@@ -45,7 +45,7 @@ const STRINGS = {
     "voice.s3": "One clear word moves it a little. Bigger jumps take two or three words in a row. After a few words that don't match, it waits for you.",
     "voice.langs": "Full support in English, Portuguese and Spanish: the interface and voice mode. Voice mode also works in 31 more languages macOS can recognize, like French, German, Italian, Japanese and Chinese, with the interface in English.",
     "privacy.title": "Your voice stays on your Mac",
-    "privacy.text": "Speech recognition runs on your Mac whenever macOS supports your language. Languages that need Apple's servers are marked, so you always know. Cadence has no accounts and no analytics, and neither does this page.",
+    "privacy.text": "Speech recognition runs on your Mac whenever macOS supports your language. Languages that need Apple's servers are marked, so you always know. Cadence has no analytics, and neither does this page. Signing in to sync your scripts across Macs is optional.",
     "faq.title": "Questions",
     "faq": [
       ["Will people on my call see it?", "No. Cadence is hidden from screen sharing and screenshots, so only you see it."],
@@ -105,7 +105,7 @@ const STRINGS = {
     "voice.s3": "Uma palavra clara faz andar um pouco. Saltos maiores precisam de duas ou três palavras seguidas. Depois de algumas palavras que não batem, ele espera você.",
     "voice.langs": "Suporte completo em português, inglês e espanhol: a interface e o modo voz. O modo voz também funciona em mais 31 idiomas que o macOS reconhece, como francês, alemão, italiano, japonês e chinês, com a interface em inglês.",
     "privacy.title": "Sua voz fica no seu Mac",
-    "privacy.text": "O reconhecimento de fala roda no seu Mac sempre que o macOS suporta o seu idioma. Idiomas que precisam dos servidores da Apple são marcados, então você sempre sabe. O Cadence não tem contas nem analytics, e esta página também não.",
+    "privacy.text": "O reconhecimento de fala roda no seu Mac sempre que o macOS suporta o seu idioma. Idiomas que precisam dos servidores da Apple são marcados, então você sempre sabe. O Cadence não tem analytics, e esta página também não. Entrar para sincronizar os roteiros entre Macs é opcional.",
     "faq.title": "Perguntas",
     "faq": [
       ["As pessoas na chamada vão ver?", "Não. O Cadence fica invisível no compartilhamento de tela e nas capturas de tela, então só você vê."],
@@ -165,7 +165,7 @@ const STRINGS = {
     "voice.s3": "Una palabra clara lo mueve un poco. Los saltos grandes necesitan dos o tres palabras seguidas. Después de unas palabras que no coinciden, te espera.",
     "voice.langs": "Soporte completo en español, inglés y portugués: la interfaz y el modo voz. El modo voz también funciona en 31 idiomas más que macOS reconoce, como francés, alemán, italiano, japonés y chino, con la interfaz en inglés.",
     "privacy.title": "Tu voz se queda en tu Mac",
-    "privacy.text": "El reconocimiento de voz funciona en tu Mac siempre que macOS admita tu idioma. Los idiomas que necesitan los servidores de Apple están marcados, así que siempre lo sabes. Cadence no tiene cuentas ni analíticas, y esta página tampoco.",
+    "privacy.text": "El reconocimiento de voz funciona en tu Mac siempre que macOS admita tu idioma. Los idiomas que necesitan los servidores de Apple están marcados, así que siempre lo sabes. Cadence no tiene analíticas, y esta página tampoco. Iniciar sesión para sincronizar tus guiones entre Macs es opcional.",
     "faq.title": "Preguntas",
     "faq": [
       ["¿Lo verá la gente en mi llamada?", "No. Cadence es invisible al compartir pantalla y en las capturas, así que solo lo ves tú."],

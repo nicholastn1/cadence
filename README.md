@@ -134,7 +134,9 @@ Voice mode uses macOS speech recognition, so it covers the languages macOS cover
 
 ## Privacy
 
-Speech recognition runs on your Mac whenever macOS supports it for the script's language; otherwise Apple's servers handle it, and the app tells you when that's the case. Cadence has no servers, accounts, or analytics. Your script is stored only in the app's preferences on your Mac.
+Speech recognition runs on your Mac whenever macOS supports it for the script's language; otherwise Apple's servers handle it, and the app tells you when that's the case. Cadence has no analytics. Without signing in, your scripts are stored only in the app's preferences on your Mac.
+
+Sync is optional. If you sign in with Google in Settings, Cadence gets your Google account ID and email, nothing else, and keeps your scripts on the sync server so they reach your other Macs. Deleting a script deletes its text from the server too. The server is in [`server/`](server/): one small Go program you can host yourself.
 
 ## Roadmap
 
@@ -146,7 +148,7 @@ Cadence is a work in progress. Next up, roughly in order. Want one sooner? Open 
 - [ ] Import from Google Docs and Notion
 - [ ] More interface languages (translations welcome, see [CONTRIBUTING.md](CONTRIBUTING.md))
 
-Done recently: word highlighting, pace stats, file import, Portuguese and Spanish interface, off-script hold, per-script voice language, update checks.
+Done recently: sync across Macs with Google sign-in, renaming scripts, word highlighting, pace stats, file import, Portuguese and Spanish interface, off-script hold, per-script voice language, update checks.
 
 ## Contributing
 

@@ -1,7 +1,7 @@
 // Cadence sync server: sign in with Google, then keep each person's scripts in one JSON file.
 //
 //	GOOGLE_CLIENT_ID  OAuth client the app signs in with (required)
-//	ALLOWED_EMAILS    comma-separated; empty = anyone with a Google account
+//	ALLOWED_EMAILS    comma-separated, or * for anyone with a Google account (required)
 //	DATA_DIR, PORT    default /data and 8080
 package main
 
@@ -110,10 +110,17 @@ func env(k, def string) string {
 
 func hash(s string) string { h := sha256.Sum256([]byte(s)); return hex.EncodeToString(h[:]) }
 
-func readJSON(path string, v any) {
-	if b, err := os.ReadFile(path); err == nil {
-		json.Unmarshal(b, v)
+// readJSON leaves v alone when the file doesn't exist yet. Any other failure is an error,
+// so a damaged file is never mistaken for an empty one and written over.
+func readJSON(path string, v any) error {
+	b, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return nil
 	}
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, v)
 }
 
 // writeJSON replaces the file in one step, so a crash never leaves half a file.
@@ -149,7 +156,7 @@ func verifyGoogle(idToken string) (session, bool) {
 }
 
 func emailAllowed(email string) bool {
-	if allowed == "" {
+	if allowed == "*" {
 		return true
 	}
 	for _, a := range strings.Split(allowed, ",") {
@@ -185,7 +192,10 @@ func signIn(w http.ResponseWriter, r *http.Request) {
 	defer mu.Unlock()
 	sessions := map[string]session{}
 	path := filepath.Join(dataDir, "sessions.json")
-	readJSON(path, &sessions)
+	if readJSON(path, &sessions) != nil {
+		http.Error(w, "couldn't read sessions", 500)
+		return
+	}
 	sessions[hash(token)] = s // only the hash is stored: a leaked file doesn't leak sessions
 	prune(sessions)
 	if writeJSON(path, sessions) != nil {
@@ -208,7 +218,10 @@ func syncScripts(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	defer mu.Unlock()
 	sessions := map[string]session{}
-	readJSON(filepath.Join(dataDir, "sessions.json"), &sessions)
+	if readJSON(filepath.Join(dataDir, "sessions.json"), &sessions) != nil {
+		http.Error(w, "couldn't read sessions", 500)
+		return
+	}
 	s, ok := sessions[hash(token)]
 	if token == "" || !ok || s.expired() {
 		http.Error(w, "signed out", 401)
@@ -216,7 +229,10 @@ func syncScripts(w http.ResponseWriter, r *http.Request) {
 	}
 	path := filepath.Join(dataDir, "users", s.Sub+".json")
 	var stored []Script
-	readJSON(path, &stored)
+	if readJSON(path, &stored) != nil {
+		http.Error(w, "couldn't read your scripts", 500)
+		return
+	}
 	merged := merge(stored, body.Scripts)
 	if b, _ := json.Marshal(merged); len(b) > maxStored {
 		http.Error(w, "you've reached the storage limit for scripts", 413)
@@ -236,15 +252,24 @@ func signOut(w http.ResponseWriter, r *http.Request) {
 	defer mu.Unlock()
 	path := filepath.Join(dataDir, "sessions.json")
 	sessions := map[string]session{}
-	readJSON(path, &sessions)
+	if readJSON(path, &sessions) != nil {
+		http.Error(w, "couldn't read sessions", 500)
+		return
+	}
 	delete(sessions, hash(token))
-	writeJSON(path, sessions)
+	if writeJSON(path, sessions) != nil {
+		http.Error(w, "couldn't sign out", 500)
+		return
+	}
 	w.WriteHeader(204)
 }
 
 func main() {
 	if clientID == "" {
 		log.Fatal("GOOGLE_CLIENT_ID is required")
+	}
+	if allowed == "" {
+		log.Fatal("ALLOWED_EMAILS is required: list the emails that may sign in, or * for anyone")
 	}
 	if err := os.MkdirAll(filepath.Join(dataDir, "users"), 0o700); err != nil {
 		log.Fatal(err)

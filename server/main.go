@@ -16,8 +16,10 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Script is opaque to the server except for what merging needs.
@@ -60,8 +62,35 @@ func merge(stored, incoming []Script) []Script {
 }
 
 type session struct {
-	Sub   string `json:"sub"`
-	Email string `json:"email"`
+	Sub     string `json:"sub"`
+	Email   string `json:"email"`
+	Created int64  `json:"created"` // unix seconds
+}
+
+const (
+	sessionTTL     = 180 * 24 * time.Hour // then the app asks you to sign in again
+	sessionsPerSub = 10                   // a new sign-in past this drops your oldest session
+	maxStored      = 20 << 20             // bytes of scripts per person, tombstones included
+)
+
+func (s session) expired() bool { return time.Since(time.Unix(s.Created, 0)) > sessionTTL }
+
+// prune drops expired sessions and keeps only the newest few per person, so the file can't grow forever.
+func prune(sessions map[string]session) {
+	bySub := map[string][]string{}
+	for h, s := range sessions {
+		if s.expired() {
+			delete(sessions, h)
+		} else {
+			bySub[s.Sub] = append(bySub[s.Sub], h)
+		}
+	}
+	for _, hs := range bySub {
+		sort.Slice(hs, func(i, j int) bool { return sessions[hs[i]].Created > sessions[hs[j]].Created })
+		for _, h := range hs[min(len(hs), sessionsPerSub):] {
+			delete(sessions, h)
+		}
+	}
 }
 
 var (
@@ -116,7 +145,7 @@ func verifyGoogle(idToken string) (session, bool) {
 	}
 	ok := info.Aud == clientID && info.EmailVerified == "true" && subRe.MatchString(info.Sub) &&
 		(info.Iss == "accounts.google.com" || info.Iss == "https://accounts.google.com")
-	return session{info.Sub, info.Email}, ok
+	return session{Sub: info.Sub, Email: info.Email, Created: time.Now().Unix()}, ok
 }
 
 func emailAllowed(email string) bool {
@@ -158,6 +187,7 @@ func signIn(w http.ResponseWriter, r *http.Request) {
 	path := filepath.Join(dataDir, "sessions.json")
 	readJSON(path, &sessions)
 	sessions[hash(token)] = s // only the hash is stored: a leaked file doesn't leak sessions
+	prune(sessions)
 	if writeJSON(path, sessions) != nil {
 		http.Error(w, "couldn't save the session", 500)
 		return
@@ -180,7 +210,7 @@ func syncScripts(w http.ResponseWriter, r *http.Request) {
 	sessions := map[string]session{}
 	readJSON(filepath.Join(dataDir, "sessions.json"), &sessions)
 	s, ok := sessions[hash(token)]
-	if token == "" || !ok {
+	if token == "" || !ok || s.expired() {
 		http.Error(w, "signed out", 401)
 		return
 	}
@@ -188,11 +218,28 @@ func syncScripts(w http.ResponseWriter, r *http.Request) {
 	var stored []Script
 	readJSON(path, &stored)
 	merged := merge(stored, body.Scripts)
+	if b, _ := json.Marshal(merged); len(b) > maxStored {
+		http.Error(w, "you've reached the storage limit for scripts", 413)
+		return
+	}
 	if writeJSON(path, merged) != nil {
 		http.Error(w, "couldn't save your scripts", 500)
 		return
 	}
 	json.NewEncoder(w).Encode(map[string][]Script{"scripts": merged})
+}
+
+// signOut ends this session on the server, not just in the app.
+func signOut(w http.ResponseWriter, r *http.Request) {
+	token, _ := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	mu.Lock()
+	defer mu.Unlock()
+	path := filepath.Join(dataDir, "sessions.json")
+	sessions := map[string]session{}
+	readJSON(path, &sessions)
+	delete(sessions, hash(token))
+	writeJSON(path, sessions)
+	w.WriteHeader(204)
 }
 
 func main() {
@@ -206,6 +253,7 @@ func main() {
 		return func(w http.ResponseWriter, r *http.Request) { r.Body = http.MaxBytesReader(w, r.Body, 10<<20); h(w, r) }
 	}
 	http.HandleFunc("POST /auth/google", limit(signIn))
+	http.HandleFunc("POST /auth/signout", limit(signOut))
 	http.HandleFunc("POST /sync", limit(syncScripts))
 	http.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	port := env("PORT", "8080")

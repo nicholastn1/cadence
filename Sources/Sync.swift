@@ -108,8 +108,14 @@ final class Sync: NSObject, ObservableObject, ASWebAuthenticationPresentationCon
         }
     }
 
-    /// Scripts stay on this Mac; it just stops syncing them.
+    /// Scripts stay on this Mac; it just stops syncing them. The server forgets the session too.
     func signOut() {
+        if let token {
+            var req = URLRequest(url: Self.server.appendingPathComponent("auth/signout"))
+            req.httpMethod = "POST"
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            URLSession.shared.dataTask(with: req).resume()
+        }
         token = nil
         email = nil
         try? FileManager.default.removeItem(at: file)
